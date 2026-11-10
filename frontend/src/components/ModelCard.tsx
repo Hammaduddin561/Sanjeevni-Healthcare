@@ -81,7 +81,7 @@ export const ModelCard: React.FC = () => {
                 <div className="glass-panel p-5 rounded-2xl border border-white/20 dark:border-white/5 flex flex-col items-center text-center">
                     <Award className="text-cyan-500 mb-2" size={22} />
                     <span className="text-2xl font-black text-slate-900 dark:text-white font-display">
-                        {(perf.roc_auc ?? 0.978).toFixed(4)}
+                        {perf.roc_auc !== undefined ? perf.roc_auc.toFixed(4) : 'N/A'}
                     </span>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mt-1">ROC-AUC Score</span>
                 </div>
@@ -89,7 +89,7 @@ export const ModelCard: React.FC = () => {
                 <div className="glass-panel p-5 rounded-2xl border border-white/20 dark:border-white/5 flex flex-col items-center text-center">
                     <Activity className="text-emerald-500 mb-2" size={22} />
                     <span className="text-2xl font-black text-slate-900 dark:text-white font-display">
-                        {((perf.recall_sensitivity ?? 0.916) * 100).toFixed(1)}%
+                        {perf.recall_sensitivity !== undefined ? `${(perf.recall_sensitivity * 100).toFixed(1)}%` : 'N/A'}
                     </span>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mt-1">Screening Sensitivity</span>
                 </div>
@@ -97,7 +97,7 @@ export const ModelCard: React.FC = () => {
                 <div className="glass-panel p-5 rounded-2xl border border-white/20 dark:border-white/5 flex flex-col items-center text-center">
                     <Scale className="text-purple-500 mb-2" size={22} />
                     <span className="text-2xl font-black text-slate-900 dark:text-white font-display">
-                        {((perf.specificity ?? 0.900) * 100).toFixed(1)}%
+                        {perf.specificity !== undefined ? `${(perf.specificity * 100).toFixed(1)}%` : 'N/A'}
                     </span>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mt-1">Specificity</span>
                 </div>
@@ -105,9 +105,11 @@ export const ModelCard: React.FC = () => {
                 <div className="glass-panel p-5 rounded-2xl border border-white/20 dark:border-white/5 flex flex-col items-center text-center">
                     <CheckCircle2 className="text-teal-500 mb-2" size={22} />
                     <span className="text-2xl font-black text-slate-900 dark:text-white font-display">
-                        {(perf.brier_score ?? 0.044).toFixed(4)}
+                        {(perf.brier_score_calibrated ?? perf.brier_score) !== undefined
+                            ? (perf.brier_score_calibrated ?? perf.brier_score).toFixed(4)
+                            : 'N/A'}
                     </span>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mt-1">Calibration Error (Brier)</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mt-1">Calibrated Brier (ECE: {perf.expected_calibration_error_calibrated !== undefined ? perf.expected_calibration_error_calibrated.toFixed(4) : 'N/A'})</span>
                 </div>
             </div>
 
@@ -199,30 +201,52 @@ export const ModelCard: React.FC = () => {
                 </div>
 
                 {/* Age Subgroup Summary */}
-                <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                        Age Cohort Audit
-                    </span>
+                <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                            Age Cohort Audit
+                        </span>
+                        <div className="flex gap-2 text-[11px]">
+                            <span className="px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 font-semibold">
+                                DP Diff: {(ageAudit.demographic_parity_difference ?? 0).toFixed(4)}
+                            </span>
+                            <span className="px-2 py-0.5 rounded bg-rose-50 dark:bg-rose-950/30 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800 font-semibold">
+                                EO Diff: {(ageAudit.equalized_odds_difference ?? 0).toFixed(4)}
+                            </span>
+                        </div>
+                    </div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         {Object.entries(ageAudit.by_group || {}).map(([band, m]: [string, any]) => (
                             <div key={band} className="p-3 rounded-xl bg-slate-50/60 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-700/50">
                                 <span className="font-bold text-xs text-slate-800 dark:text-slate-200 block">{band} Years</span>
                                 <div className="text-[11px] text-slate-500 mt-1 flex justify-between">
-                                    <span>Sensitivity:</span>
-                                    <span className="font-mono font-semibold text-emerald-600 dark:text-emerald-400">
-                                        {((m.recall_tpr ?? 0) * 100).toFixed(0)}%
+                                    <span>Recall (TPR):</span>
+                                    <span className={`font-mono font-semibold ${(m.recall_tpr ?? 0) < 0.8 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                                        {((m.recall_tpr ?? 0) * 100).toFixed(1)}%
                                     </span>
                                 </div>
                                 <div className="text-[11px] text-slate-500 flex justify-between">
-                                    <span>Selection:</span>
+                                    <span>False Pos Rate:</span>
+                                    <span className={`font-mono font-semibold ${(m.false_positive_rate ?? 0) > 0.2 ? 'text-rose-600 dark:text-rose-400' : ''}`}>
+                                        {((m.false_positive_rate ?? 0) * 100).toFixed(1)}%
+                                    </span>
+                                </div>
+                                <div className="text-[11px] text-slate-500 flex justify-between">
+                                    <span>Selection Rate:</span>
                                     <span className="font-mono">{((m.selection_rate ?? 0) * 100).toFixed(1)}%</span>
                                 </div>
                             </div>
                         ))}
                     </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 italic pt-1">
+                    <p className="text-xs text-slate-600 dark:text-slate-300 pt-1 leading-relaxed">
                         {ageAudit.summary}
                     </p>
+                    {ageAudit.limitation_note && (
+                        <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 text-xs text-rose-800 dark:text-rose-200 flex items-start gap-2">
+                            <AlertTriangle size={14} className="shrink-0 mt-0.5 text-rose-600" />
+                            <span>{ageAudit.limitation_note}</span>
+                        </div>
+                    )}
                 </div>
             </div>
 

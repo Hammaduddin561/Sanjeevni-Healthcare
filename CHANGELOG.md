@@ -14,7 +14,7 @@ All notable upgrades transforming Sanjeevni Healthcarer into a safe, explainable
 - Shared singleton `RiskEngine` across FastAPI lifecycle `app.state`.
 
 ### Phase 2: Calibrated Model, SHAP TreeExplainer, DiCE & Fairness Audit
-- Built reproducible training script (`scripts/train.py`) producing calibrated XGBoost classifier with Platt scaling (**ROC-AUC: 0.9778**, **Sensitivity: 91.61%**, **Specificity: 90.02%**, **Brier Error: 0.044**).
+- Built reproducible training script (`scripts/train.py`) producing calibrated XGBoost classifier with Platt scaling (**ROC-AUC: 0.9778**, **Sensitivity: 91.61%**, **Specificity: 90.02%**, **Calibrated Brier Score: 0.0258**, **Uncalibrated Brier: 0.0598**, **Calibrated ECE: 0.0232**) trained on the public Kaggle diabetes benchmark dataset.
 - Replaced slow SHAP KernelExplainer with `TreeExplainer` (<50ms runtime) + bilingual English/Hindi plain-language explanations.
 - Integrated `DiCE` counterfactuals strictly constrained to actionable targets (`bmi`, `HbA1c_level`, `smoking_history`) with `FeatureEngineeringWrapper`.
 - Performed subgroup fairness audit with `Fairlearn` (`scripts/audit_fairness.py`) across gender and age cohorts.

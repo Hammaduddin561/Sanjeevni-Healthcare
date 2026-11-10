@@ -28,8 +28,8 @@ This log documents all autonomous architectural, engineering, and design decisio
 ## Decision 4: Fairlearn Subgroup Audit & Model Transparency Card
 - **Context**: AI models deployed in community healthcare risk amplifying gender or age disparities if calibration varies across subgroups.
 - **Decision**:
-  1. Implemented `scripts/audit_fairness.py` using `Fairlearn` auditing 100,000+ benchmark patients across gender (`Male`, `Female`) and four age tiers (`<30`, `30-44`, `45-59`, `60+`). Recorded Demographic Parity Difference (0.0406) and Equalized Odds (0.0228).
-  2. Built a comprehensive frontend Model Card (`/model-card`) and backend endpoint (`GET /model-card`) exposing empirical ROC-AUC (0.9778), sensitivity (0.9161), specificity (0.9002), Brier calibration score (0.044), data provenance, intended use, limitations, and the research prototype disclaimer.
+  1. Implemented `scripts/audit_fairness.py` using `Fairlearn` auditing 100,974 records from the public Kaggle diabetes benchmark dataset across gender (`Male`, `Female`) and four age bands (`<30`, `30-44`, `45-59`, `60+`). Gender Demographic Parity Difference is `0.0406` and Equalized Odds Difference is `0.0228`; Age Demographic Parity Difference is `0.4094` and Equalized Odds Difference is `0.3128` (recall is 66.1% for <30 and 78.1% for 30-44, while 60+ FPR is 27.9%).
+  2. Built a comprehensive frontend Model Card (`/model-card`) and backend endpoint (`GET /model-card`) exposing empirical ROC-AUC (`0.9778`), sensitivity (`0.9161`), specificity (`0.9002`), calibrated Brier score (`0.0258`, uncalibrated `0.0598`), calibrated ECE (`0.0232`), data provenance ("public Kaggle diabetes benchmark dataset"), intended use, limitations, and the research prototype disclaimer.
   3. Integrated bilingual (English / हिन्दी) plain-language explanations in SHAP feature cards with an expandable technical details toggle.
 - **Rationale**: Full compliance with explainability and healthcare AI governance standards (WHO/CDSCO/FDA guidelines on clinical decision support prototypes).
 

@@ -16,5 +16,5 @@ At **Clinical Risk Predictor**, we prioritize patient safety, data privacy, and 
 *   **De-identification**: All patient data processing happens locally or in a compliant environment. No PII is sent to external LLM APIs; only anonymized clinical features are used for prompt generation.
 
 ### 4. Limitations
-*   **Synthetic Training Data**: The current model is trained on a curated diabetes dataset. This dataset may not fully reflect the complexity of real-world patient populations.
+*   **Benchmark Training Data**: The current model is trained on the public Kaggle diabetes benchmark dataset (`data/diabetes_dataset.csv`). This dataset may not fully reflect the micro-epidemiology of all rural Indian primary care populations.
 *   **GenAI Hallucinations**: While we use prompt engineering to ground LLM outputs in data, there is a non-zero risk of hallucination. Clinicians are warned to verify generated recommendations.
