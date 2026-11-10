@@ -88,7 +88,6 @@ Application interface runs at: `http://localhost:5173`
 |---|---|---|---|
 | **ASHA Health Worker** | `worker@sanjeevni.org` | `Password@123` | Guided 5-min visit screening |
 | **PHC Doctor** | `doctor@phc.org` | `Password@123` | Triage dashboard & summaries |
-| **Legacy Doctor** | `doc@hospital.com` | `password123` | Clinician dashboard |
 | **Administrator** | `admin@hospital.org` | `password123` | Audit logs & compliance |
 
 ---

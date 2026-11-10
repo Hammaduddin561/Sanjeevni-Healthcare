@@ -14,7 +14,7 @@ test.describe('Admin Features', () => {
 
         await page.getByText("Already have an account? Sign In").click().catch(() => { });
 
-        await page.getByPlaceholder('doc@hospital.com').fill('admin@hospital.org');
+        await page.getByPlaceholder('doctor@phc.org').fill('admin@hospital.org');
         await page.getByPlaceholder('Enter password').fill('password123');
         await page.getByRole('button', { name: 'Sign In' }).click();
 
@@ -22,16 +22,16 @@ test.describe('Admin Features', () => {
         await expect(page.getByRole('button', { name: 'Audit Logs' })).toBeVisible();
         await page.getByRole('button', { name: 'Audit Logs' }).click();
 
-        // 3. Verify Table Headers (New Clinician Column)
-        await expect(page.getByRole('cell', { name: 'Clinician' })).toBeVisible();
+        // 3. Verify Table Headers
+        await expect(page.getByRole('cell', { name: 'Actor' })).toBeVisible();
 
         // 4. Logout
-        await page.getByRole('button', { name: 'Admin' }).click(); // User menu
+        await page.getByRole('button', { name: 'System Administrator' }).click(); // User menu
         await page.getByRole('button', { name: 'Sign Out' }).click();
 
-        // 5. Login as standard user
-        await page.getByPlaceholder('doc@hospital.com').fill('doc@hospital.com');
-        await page.getByPlaceholder('Enter password').fill('password123');
+        // 5. Login as PHC Doctor
+        await page.getByPlaceholder('doctor@phc.org').fill('doctor@phc.org');
+        await page.getByPlaceholder('Enter password').fill('Password@123');
         await page.getByRole('button', { name: 'Sign In' }).click();
 
         // 6. Verify Audit Logs HIDDEN
