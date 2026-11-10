@@ -16,6 +16,7 @@ import DigitalTwinModel from './components/DigitalTwinModel';
 interface User {
   email: string;
   name: string;
+  role?: string;
   specialty?: string;
 }
 
@@ -45,14 +46,14 @@ function App() {
   const handleLoginSuccess = (userData: User) => {
     setUser(userData);
     setIsAuthenticated(true);
-    setShowIntro(true);
+    setShowIntro(false);
     localStorage.setItem('sanjeevniUser', JSON.stringify(userData));
   };
 
   const handleSignupSuccess = (userData: User) => {
     setUser(userData);
     setIsAuthenticated(true);
-    setShowIntro(true);
+    setShowIntro(false);
     localStorage.setItem('sanjeevniUser', JSON.stringify(userData));
   };
 

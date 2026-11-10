@@ -296,7 +296,7 @@ const Signup: React.FC<SignupProps> = ({ onSignupSuccess, onSwitchToLogin }) => 
           <div className="text-center text-sm text-slate-500 font-medium">
             Already have an account?{' '}
             <button onClick={onSwitchToLogin} className="text-clinical-teal hover:underline cursor-pointer">
-              Sign In
+              Back to Login
             </button>
           </div>
         </div>

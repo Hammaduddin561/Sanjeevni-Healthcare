@@ -27,6 +27,7 @@ export interface AuthResponse {
     token_type: string;
     user_name: string;
     user_email: string;
+    role?: string;
     user_specialty?: string;
 }
 

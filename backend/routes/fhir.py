@@ -1,47 +1,31 @@
-from fastapi import APIRouter, HTTPException
+import logging
+from fastapi import APIRouter, HTTPException, Depends, Request
 from backend.schemas.patient import PatientRequest
 from backend.utils.fhir_converter import FHIRConverter
 from backend.models.risk_engine import RiskEngine
 
+logger = logging.getLogger("sanjeevni.fhir")
 router = APIRouter(prefix="/fhir", tags=["FHIR Interoperability"])
 
-# Load Risk Engine (Singleton ideally, but lazy load here for safety or import from api?)
-# Circular import if I import from api. 
-# Best practice: Dependency Injection or just duplicate instantiation if lightweight (XGBoost is fast).
-# But RiskEngine loads model.
-# I will assume `RiskEngine` is singleton safe or lightweight enough. 
-# Actually, I should use `request.app.state.risk_engine` if I stored it there.
-# But `api.py` defined it as global.
-# I will lazily instantiate.
-
-risk_engine = None
-
-def get_risk_engine():
-    global risk_engine
-    if risk_engine is None:
-        try:
-            risk_engine = RiskEngine()
-        except:
-            pass
-    return risk_engine
+def get_shared_risk_engine(request: Request) -> RiskEngine:
+    """Retrieve the singleton RiskEngine instance stored in FastAPI app state."""
+    engine = getattr(request.app.state, "risk_engine", None)
+    if engine is None:
+        logger.error("RiskEngine instance not found in FastAPI app.state")
+        raise HTTPException(status_code=503, detail="Risk Engine not initialized on server")
+    return engine
 
 @router.post("/bundle")
-def convert_to_fhir(patient: PatientRequest):
-    engine = get_risk_engine()
-    if not engine:
-        raise HTTPException(status_code=503, detail="Risk Engine not ready")
-        
+def convert_to_fhir(patient: PatientRequest, engine: RiskEngine = Depends(get_shared_risk_engine)):
     try:
-        # Predict
-        data = patient.dict()
+        data = patient.model_dump()
         score = engine.predict_risk(data)
         level = "High" if score >= 0.6 else "Moderate" if score >= 0.2 else "Low"
         
-        # Convert
+        # Convert resources
         fhir_patient = FHIRConverter.to_patient(data)
         fhir_assessment = FHIRConverter.to_risk_assessment(data, score, level)
         
-        # Bundle
         return {
             "resourceType": "Bundle",
             "type": "collection",
@@ -50,5 +34,10 @@ def convert_to_fhir(patient: PatientRequest):
                 {"resource": fhir_assessment}
             ]
         }
+    except ValueError as ve:
+        logger.warning(f"Validation error generating FHIR bundle: {ve}")
+        raise HTTPException(status_code=422, detail=str(ve))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("Unexpected failure during FHIR bundle conversion")
+        raise HTTPException(status_code=500, detail=f"FHIR conversion error: {str(e)}")
+

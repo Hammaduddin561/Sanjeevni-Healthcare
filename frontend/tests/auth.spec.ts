@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test';
 
 test('auth flow', async ({ page }) => {
+    test.setTimeout(60000);
     console.log('Navigating to home...');
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://127.0.0.1:5173/', { waitUntil: 'domcontentloaded' });
     console.log('Navigation complete.');
 
     // Should see login page
@@ -17,8 +18,8 @@ test('auth flow', async ({ page }) => {
     await page.getByRole('button', { name: 'Back to Login' }).click();
     await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible();
 
-    // Login
-    await page.getByPlaceholder('doc@hospital.com').fill('doc@hospital.com');
+    // Login as Admin
+    await page.getByPlaceholder('doc@hospital.com').fill('admin@hospital.org');
     await page.getByPlaceholder('Enter password').fill('password123');
     await page.getByRole('button', { name: 'Sign In' }).click();
 
