@@ -23,34 +23,39 @@ CLINICAL GUIDELINES CITED:
    - Score 10-19: Moderate to moderately severe depression warranting active clinical consultation.
 """
 
+import json
+from pathlib import Path
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass, field
 
 
 # ---------------------------------------------------------------------------
-# Threshold Definitions & Guideline References
+# Threshold Definitions Loaded From Shared JSON Config (shared/triage_thresholds.json)
 # ---------------------------------------------------------------------------
+_THRESHOLDS_PATH = Path(__file__).resolve().parent.parent.parent / "shared" / "triage_thresholds.json"
+with open(_THRESHOLDS_PATH, "r", encoding="utf-8") as _tf:
+    _T = json.load(_tf)["thresholds"]
 
 # ADA 2024 Hyperglycemic Emergency Thresholds
-SEVERE_GLUCOSE_CRITICAL = 300.0   # mg/dL (ADA 2024: Immediate Physician Evaluation)
-ELEVATED_GLUCOSE_WARNING = 200.0  # mg/dL (ADA 2024: Diabetes Diagnostic Threshold)
-SEVERE_HBA1C_CRITICAL = 12.0      # % (ADA 2024: Marked Decompensation)
-ELEVATED_HBA1C_WARNING = 8.5      # % (ADA 2024: Suboptimal Glycemic Target)
+SEVERE_GLUCOSE_CRITICAL = float(_T["severe_glucose_critical"])     # 300.0 mg/dL
+ELEVATED_GLUCOSE_WARNING = float(_T["elevated_glucose_warning"])   # 200.0 mg/dL
+SEVERE_HBA1C_CRITICAL = float(_T["severe_hba1c_critical"])         # 12.0 %
+ELEVATED_HBA1C_WARNING = float(_T["elevated_hba1c_warning"])       # 8.5 %
 
 # AHA/ACC 2017 Blood Pressure Thresholds
-HYPERTENSIVE_CRISIS_SYSTOLIC = 180.0   # mmHg (AHA/ACC 2017: Hypertensive Crisis)
-HYPERTENSIVE_CRISIS_DIASTOLIC = 120.0  # mmHg (AHA/ACC 2017: Hypertensive Crisis)
-STAGE2_HYPERTENSION_SYSTOLIC = 140.0   # mmHg (AHA/ACC 2017 & WHO PEN: Stage 2)
-STAGE2_HYPERTENSION_DIASTOLIC = 90.0   # mmHg (AHA/ACC 2017 & WHO PEN: Stage 2)
+HYPERTENSIVE_CRISIS_SYSTOLIC = float(_T["hypertensive_crisis_systolic"])    # 180.0 mmHg
+HYPERTENSIVE_CRISIS_DIASTOLIC = float(_T["hypertensive_crisis_diastolic"])  # 120.0 mmHg
+STAGE2_HYPERTENSION_SYSTOLIC = float(_T["stage2_hypertension_systolic"])    # 140.0 mmHg
+STAGE2_HYPERTENSION_DIASTOLIC = float(_T["stage2_hypertension_diastolic"])  # 90.0 mmHg
 
 # PHQ-9 Depression Screener Thresholds (Kroenke et al. 2001)
-PHQ9_SELF_HARM_ITEM_INDEX = 8         # Question 9: Index 8 (0-indexed)
-PHQ9_SEVERE_THRESHOLD = 20            # Severe depression
-PHQ9_MODERATE_THRESHOLD = 10          # Moderate depression
+PHQ9_SELF_HARM_ITEM_INDEX = int(_T["phq9_self_harm_item_index"])    # Question 9: Index 8
+PHQ9_SEVERE_THRESHOLD = int(_T["phq9_severe_threshold"])            # 20
+PHQ9_MODERATE_THRESHOLD = int(_T["phq9_moderate_threshold"])        # 10
 
 # ML Probability Cutoffs
-ML_RED_THRESHOLD = 0.65               # High diabetes probability
-ML_YELLOW_THRESHOLD = 0.35            # Moderate diabetes probability
+ML_RED_THRESHOLD = float(_T["ml_red_threshold"])                    # 0.65
+ML_YELLOW_THRESHOLD = float(_T["ml_yellow_threshold"])              # 0.35
 
 # National Helpline Directory
 CRISIS_HELPLINES = [
