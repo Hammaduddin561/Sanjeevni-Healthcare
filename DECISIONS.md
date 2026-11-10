@@ -29,7 +29,7 @@ This log documents all autonomous architectural, engineering, and design decisio
 - **Context**: AI models deployed in community healthcare risk amplifying gender or age disparities if calibration varies across subgroups.
 - **Decision**:
   1. Implemented `scripts/audit_fairness.py` using `Fairlearn` auditing 100,974 records from the public Kaggle diabetes benchmark dataset across gender (`Male`, `Female`) and four age bands (`<30`, `30-44`, `45-59`, `60+`). Gender Demographic Parity Difference is `0.0406` and Equalized Odds Difference is `0.0228`; Age Demographic Parity Difference is `0.4094` and Equalized Odds Difference is `0.3128` (recall is 66.1% for <30 and 78.1% for 30-44, while 60+ FPR is 27.9%).
-  2. Built a comprehensive frontend Model Card (`/model-card`) and backend endpoint (`GET /model-card`) exposing empirical ROC-AUC (`0.9778`), sensitivity (`0.9161`), specificity (`0.9002`), calibrated Brier score (`0.0258`, uncalibrated `0.0598`), calibrated ECE (`0.0232`), data provenance ("public Kaggle diabetes benchmark dataset"), intended use, limitations, and the research prototype disclaimer.
+  2. Built a comprehensive frontend Model Card (`/model-card`) and backend endpoint (`GET /model-card`) exposing empirical ROC-AUC (`0.9773`), sensitivity (`0.9161`), specificity (`0.9002`), calibrated Brier score (`0.0258`, uncalibrated `0.0598`), calibrated ECE (`0.0232`), data provenance ("public Kaggle diabetes benchmark dataset"), intended use, limitations, and the research prototype disclaimer.
   3. Integrated bilingual (English / हिन्दी) plain-language explanations in SHAP feature cards with an expandable technical details toggle.
 - **Rationale**: Full compliance with explainability and healthcare AI governance standards (WHO/CDSCO/FDA guidelines on clinical decision support prototypes).
 
@@ -53,4 +53,18 @@ This log documents all autonomous architectural, engineering, and design decisio
 - **Context**: Clinical interoperability with ABDM / national registries and PHC doctors needing immediate visibility into critical referrals.
 - **Decision**: Extended `FHIRConverter` to produce standard HL7 FHIR R4 Bundles containing `Patient`, LOINC-coded `Observation` resources (glucose, HbA1c, BMI, BP panel, PHQ-9 score), and `RiskAssessment`. Built `DoctorDashboard` displaying village-filterable rosters prioritized strictly **RED-first**, paired with one-click longitudinal timelines and WhatsApp referral export.
 - **Rationale**: Bridges doorstep community screenings directly to Medical Officers at Primary Health Centres.
+
+---
+## Decision 9: Zero-Trust JWT RBAC, Fail-Loud SECRET_KEY & Admin `/audit`
+- **Decision**: Added `Depends(get_current_user)` across all patient, screening, prediction, simulation, FHIR, cohort, feedback, report, and chat endpoints; restricted `worker` users to their own `visits` (`403` on others' timelines); restricted `GET /audit` to `admin` role backed by persistent `audit_events` (zero PII). Made missing `SECRET_KEY` raise `RuntimeError` unless `APP_ENV=development`; removed duplicate `doc@hospital.com` demo account; sourced seed passwords from env vars (`APP_ENV=development` fallback only).
+
+## Decision 10: Dual Full-Lab & No-Lab Screening + Single Source of Truth Triage
+- **Decision**: Trained a second Platt-calibrated XGBoost model without HbA1c/glucose (`risk_pipeline_nolab_v1.joblib`, ROC-AUC `0.8324`, Calibrated Brier `0.0667`), auto-routed whenever labs are omitted, labeled *"Estimated without lab tests: confirm with a glucometer or lab test"*. Unified all safety cutoffs and fitted balanced logistic weights (`shared/triage_thresholds.json`) used identically by backend `safety_layer.py` and frontend `offlineRiskCalculator.ts`.
+
+## Decision 11: Offline Service Worker Shell Caching & Complete Hindi Support
+- **Decision**: Enabled `sw.js` (`sanjeevni-shell-v2`) registration in `main.tsx` for offline shell & asset availability with client-generated UUID idempotency. Localized remaining UI components (`en.json`/`hi.json` key parity), added Hindi ADA/AHA/PHQ-9 knowledge docs (`*_hi.txt`), and fixed Unicode Devanagari tokenization (`_tokenize_unicode`) in `LLMEngine`.
+
+## Decision 12: Time-Box Stop Point (Strict 48-Minute Budget)
+- **Decision**: Completed and verified Items 1–7 within the time budget. Skipped Items 8–12 (cleanup/packaging fixes, CI/E2E expansion, Render/Vercel deploy templates, final README rewrite, and `docs/submission/*`) rather than rushing untested edits past the 48-minute cutoff.
+
 

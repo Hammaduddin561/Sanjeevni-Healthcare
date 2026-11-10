@@ -40,19 +40,28 @@ STOPWORDS = {
     "the", "a", "an", "is", "in", "it", "to", "of", "and", "or", "for", "on", "at",
     "by", "with", "from", "as", "about", "who", "what", "where", "when", "how", "why",
     "can", "could", "should", "would", "do", "does", "did", "this", "that", "these",
-    "those", "be", "been", "being", "have", "has", "had", "me", "my", "you", "your"
+    "those", "be", "been", "being", "have", "has", "had", "me", "my", "you", "your",
+    "है", "हैं", "हो", "था", "थी", "थे", "का", "की", "के", "को", "में", "से", "पर", "और",
+    "या", "क्या", "कैसे", "क्यों", "कब", "कहाँ", "किसने", "कौन", "यह", "वह", "एक", "भी",
+    "नहीं", "करें", "होता", "होती", "अगर", "यदि", "मरीज"
 }
 
 
+def _tokenize_unicode(text: str) -> set:
+    r"""Preserves Hindi Devanagari combining vowel signs instead of breaking at \w."""
+    raw_tokens = re.findall(r"[^\s.,?!;:\"'()\-—/]+", text.lower())
+    return {t for t in raw_tokens if t not in STOPWORDS and len(t) > 1}
+
+
 class KnowledgeRetriever:
-    """Retrieves grounded guideline snippets from backend/knowledge/*.txt."""
+    """Retrieves grounded guideline snippets from backend/knowledge/*.txt (English & Hindi)."""
 
     def __init__(self, knowledge_dir: Optional[str] = None):
         if not knowledge_dir:
             base_dir = Path(__file__).resolve().parent.parent
             knowledge_dir = str(base_dir / "knowledge")
         self.knowledge_dir = knowledge_dir
-        self.documents: List[Dict[str, str]] = []
+        self.documents: List[Dict[str, Any]] = []
         self._load_documents()
 
     def _load_documents(self):
@@ -61,17 +70,19 @@ class KnowledgeRetriever:
             try:
                 with open(fpath, "r", encoding="utf-8") as f:
                     content = f.read().strip()
-                # Extract source line if present
                 lines = content.split("\n")
                 source = "Clinical Guidelines"
                 for line in lines[:3]:
                     if line.lower().startswith("source:"):
                         source = line.split(":", 1)[1].strip()
                         break
+                fname = os.path.basename(fpath)
                 self.documents.append({
-                    "file": os.path.basename(fpath),
+                    "file": fname,
+                    "lang": "hi" if fname.endswith("_hi.txt") else "en",
                     "source": source,
-                    "content": content
+                    "content": content,
+                    "tokens": _tokenize_unicode(content),
                 })
             except Exception as e:
                 logger.warning("Failed loading knowledge file %s: %s", fpath, e)
@@ -79,29 +90,28 @@ class KnowledgeRetriever:
     def retrieve(self, query: str) -> Optional[Tuple[str, str]]:
         """
         Returns (content, source_name) for the best matching guideline snippet.
-        If no relevance is found, returns None.
+        Routes Devanagari queries to Hindi guidelines when matched.
         """
         if not self.documents:
             return None
 
-        q_lower = query.lower()
-        query_words = set(re.findall(r"\w+", q_lower))
-        meaningful_words = {w for w in query_words if w not in STOPWORDS and len(w) > 2}
+        meaningful_words = _tokenize_unicode(query)
         if not meaningful_words:
             return None
 
+        is_hindi = any("\u0900" <= ch <= "\u097F" for ch in query)
+        candidates = [d for d in self.documents if d["lang"] == ("hi" if is_hindi else "en")]
+        if not candidates:
+            candidates = self.documents
+
         best_doc = None
         max_matches = 0
-
-        for doc in self.documents:
-            doc_lower = doc["content"].lower()
-            doc_words = set(re.findall(r"\w+", doc_lower))
-            common = len(meaningful_words.intersection(doc_words))
+        for doc in candidates:
+            common = len(meaningful_words.intersection(doc["tokens"]))
             if common > max_matches:
                 max_matches = common
                 best_doc = doc
 
-        # Require at least 2 relevant clinical keyword matches
         if max_matches >= 2 and best_doc is not None:
             return best_doc["content"], best_doc["source"]
         return None
@@ -166,25 +176,41 @@ class LLMEngine:
             return
 
         # Step 2: Grounding Retrieval
+        is_hindi = any("\u0900" <= ch <= "\u097F" for ch in user_message)
         grounded_context = self.retriever.retrieve(user_message)
         if grounded_context is None:
-            yield (
-                "I do not have sufficient clinical guidelines in my local knowledge base on this specific topic. "
-                "Please consult a Medical Officer at your nearest Primary Health Centre for accurate clinical guidance.\n\n"
-                "— Sanjeevni Safety Protocol"
-            )
+            if is_hindi:
+                yield (
+                    "मुझे इस विषय पर अपने स्थानीय नैदानिक दिशानिर्देशों में पर्याप्त जानकारी नहीं है। मैं अनुमान नहीं लगाऊँगा — "
+                    "कृपया सटीक सलाह के लिए नजदीकी प्राथमिक स्वास्थ्य केंद्र (पीएचसी) के डॉक्टर से परामर्श लें।\n\n"
+                    "— संजीवनी सुरक्षा प्रोटोकॉल"
+                )
+            else:
+                yield (
+                    "I do not know — I do not have sufficient clinical guidelines in my local knowledge base on this specific topic. "
+                    "Please consult a Medical Officer at your nearest Primary Health Centre for accurate clinical guidance.\n\n"
+                    "— Sanjeevni Safety Protocol"
+                )
             return
 
         context_text, source_name = grounded_context
 
         # Step 3: Check endpoint availability or Mock
         if self.mock_mode or not self.client or not self.is_available():
-            yield (
-                f"Health Guidance Summary:\n\n"
-                f"{context_text[:350]}...\n\n"
-                f"Source: {source_name}\n"
-                f"(Note: Assistant running in offline/grounded reference mode)."
-            )
+            if is_hindi:
+                yield (
+                    f"स्वास्थ्य दिशानिर्देश सारांश:\n\n"
+                    f"{context_text[:350]}...\n\n"
+                    f"स्रोत / Source: {source_name}\n"
+                    f"(नोट: सहायक ऑफ़लाइन/सत्यापित संदर्भ मोड में चल रहा है)।"
+                )
+            else:
+                yield (
+                    f"Health Guidance Summary:\n\n"
+                    f"{context_text[:350]}...\n\n"
+                    f"Source: {source_name}\n"
+                    f"(Note: Assistant running in offline/grounded reference mode)."
+                )
             return
 
         # Step 4: Stream from OpenAI-compatible endpoint

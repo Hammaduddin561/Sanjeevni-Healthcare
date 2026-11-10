@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Users, AlertTriangle, AlertCircle, CheckCircle2, MapPin,
   Filter, Search, FileText, ChevronRight, X,
@@ -34,6 +35,7 @@ interface VisitRecord {
 }
 
 export const DoctorDashboard: React.FC = () => {
+  const { t } = useTranslation();
   const [visits, setVisits] = useState<VisitRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedVillage, setSelectedVillage] = useState<string>('all');
@@ -111,13 +113,13 @@ export const DoctorDashboard: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <span className="text-xs font-bold uppercase tracking-wider text-clinical-teal flex items-center gap-1.5">
-            <Stethoscope size={16} /> Primary Health Centre (PHC) Portal
+            <Stethoscope size={16} /> {t('doctor.portal_badge')}
           </span>
           <h1 className="text-2xl sm:text-3xl font-display font-black text-slate-900 dark:text-white mt-1">
-            Doctor Clinical Triage Queue
+            {t('doctor.title')}
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Prioritized doorstep screening visits from ASHA health workers. High-risk emergencies placed on top.
+            {t('doctor.subtitle')}
           </p>
         </div>
 
@@ -126,7 +128,7 @@ export const DoctorDashboard: React.FC = () => {
           className="self-start sm:self-center px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-xs font-bold flex items-center gap-1.5 transition-colors"
         >
           <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-          <span>Refresh Queue</span>
+          <span>{t('doctor.refresh')}</span>
         </button>
       </div>
 
@@ -135,41 +137,41 @@ export const DoctorDashboard: React.FC = () => {
         {/* Total Screened */}
         <div className="glass-panel p-5 rounded-2xl border-l-4 border-l-slate-500 shadow-sm">
           <div className="flex items-center justify-between text-slate-500 mb-1">
-            <span className="text-xs font-bold uppercase">Total Screened</span>
+            <span className="text-xs font-bold uppercase">{t('doctor.total')}</span>
             <Users size={18} />
           </div>
           <div className="text-3xl font-black text-slate-900 dark:text-white">{totalCount}</div>
-          <span className="text-[11px] text-slate-400">Doorstep visits recorded</span>
+          <span className="text-[11px] text-slate-400">{t('doctor.total_sub')}</span>
         </div>
 
         {/* RED Emergency */}
         <div className="glass-panel p-5 rounded-2xl border-l-4 border-l-rose-500 bg-rose-50/40 dark:bg-rose-950/20 shadow-sm">
           <div className="flex items-center justify-between text-rose-600 mb-1">
-            <span className="text-xs font-bold uppercase">Critical (RED)</span>
+            <span className="text-xs font-bold uppercase">{t('doctor.red_label')}</span>
             <AlertTriangle size={18} />
           </div>
           <div className="text-3xl font-black text-rose-600 dark:text-rose-400">{redCount}</div>
-          <span className="text-[11px] text-rose-600/80 font-semibold">Immediate physician referral</span>
+          <span className="text-[11px] text-rose-600/80 font-semibold">{t('doctor.red_sub')}</span>
         </div>
 
         {/* YELLOW Elevated */}
         <div className="glass-panel p-5 rounded-2xl border-l-4 border-l-amber-500 bg-amber-50/40 dark:bg-amber-950/20 shadow-sm">
           <div className="flex items-center justify-between text-amber-600 mb-1">
-            <span className="text-xs font-bold uppercase">Elevated (YELLOW)</span>
+            <span className="text-xs font-bold uppercase">{t('doctor.yellow_label')}</span>
             <AlertCircle size={18} />
           </div>
           <div className="text-3xl font-black text-amber-600 dark:text-amber-400">{yellowCount}</div>
-          <span className="text-[11px] text-amber-600/80 font-semibold">PHC visit within 7 days</span>
+          <span className="text-[11px] text-amber-600/80 font-semibold">{t('doctor.yellow_sub')}</span>
         </div>
 
         {/* GREEN Low Risk */}
         <div className="glass-panel p-5 rounded-2xl border-l-4 border-l-emerald-500 bg-emerald-50/40 dark:bg-emerald-950/20 shadow-sm">
           <div className="flex items-center justify-between text-emerald-600 mb-1">
-            <span className="text-xs font-bold uppercase">Stable (GREEN)</span>
+            <span className="text-xs font-bold uppercase">{t('doctor.green_label')}</span>
             <CheckCircle2 size={18} />
           </div>
           <div className="text-3xl font-black text-emerald-600 dark:text-emerald-400">{greenCount}</div>
-          <span className="text-[11px] text-emerald-600/80 font-semibold">Home care & 6-mo check</span>
+          <span className="text-[11px] text-emerald-600/80 font-semibold">{t('doctor.green_sub')}</span>
         </div>
       </div>
 
@@ -177,13 +179,13 @@ export const DoctorDashboard: React.FC = () => {
       <div className="glass-panel p-4 rounded-2xl flex flex-col sm:flex-row gap-3 items-center justify-between">
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <Filter size={16} className="text-slate-400 shrink-0" />
-          <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Filter Village:</span>
+          <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{t('doctor.filter_village')}</span>
           <select
             value={selectedVillage}
             onChange={e => setSelectedVillage(e.target.value)}
             className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-800 dark:text-slate-200 outline-none"
           >
-            <option value="all">All Villages & Sectors</option>
+            <option value="all">{t('doctor.all_villages')}</option>
             {villages.map(v => (
               <option key={v} value={v}>{v}</option>
             ))}
@@ -194,7 +196,7 @@ export const DoctorDashboard: React.FC = () => {
           <Search size={14} className="absolute left-3 top-3 text-slate-400" />
           <input
             type="text"
-            placeholder="Search by name or ABHA ID..."
+            placeholder={t('doctor.search_placeholder')}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-200 outline-none"
@@ -206,13 +208,13 @@ export const DoctorDashboard: React.FC = () => {
       <div className="glass-panel rounded-3xl overflow-hidden shadow-sm border border-slate-200/60 dark:border-slate-800">
         <div className="p-4 border-b border-slate-200/60 dark:border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-sm text-slate-900 dark:text-white">Prioritized Patient Roster</span>
+            <span className="font-bold text-sm text-slate-900 dark:text-white">{t('doctor.roster_title')}</span>
             <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-semibold">
-              Showing {filteredVisits.length}
+              {t('doctor.showing')} {filteredVisits.length}
             </span>
           </div>
           <span className="text-[11px] text-slate-400 flex items-center gap-1">
-            <ArrowUpDown size={12} /> Sorted: RED Critical First
+            <ArrowUpDown size={12} /> {t('doctor.sorted_note')}
           </span>
         </div>
 
@@ -220,21 +222,21 @@ export const DoctorDashboard: React.FC = () => {
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-200/60 dark:border-slate-800">
               <tr>
-                <th className="py-3 px-4">Triage</th>
-                <th className="py-3 px-4">Patient</th>
-                <th className="py-3 px-4">Village</th>
-                <th className="py-3 px-4">Blood Pressure</th>
-                <th className="py-3 px-4">Glucose / HbA1c</th>
-                <th className="py-3 px-4">PHQ-9</th>
-                <th className="py-3 px-4">ASHA Worker</th>
-                <th className="py-3 px-4 text-right">Action</th>
+                <th className="py-3 px-4">{t('doctor.col_triage')}</th>
+                <th className="py-3 px-4">{t('doctor.col_patient')}</th>
+                <th className="py-3 px-4">{t('doctor.col_village')}</th>
+                <th className="py-3 px-4">{t('doctor.col_bp')}</th>
+                <th className="py-3 px-4">{t('doctor.col_glucose')}</th>
+                <th className="py-3 px-4">{t('doctor.col_phq9')}</th>
+                <th className="py-3 px-4">{t('doctor.col_worker')}</th>
+                <th className="py-3 px-4 text-right">{t('doctor.col_action')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200/50 dark:divide-slate-800/50">
               {filteredVisits.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-8 text-center text-slate-400">
-                    No patient screening visits match the current filter.
+                    {t('doctor.empty')}
                   </td>
                 </tr>
               ) : (
@@ -298,13 +300,13 @@ export const DoctorDashboard: React.FC = () => {
                         {v.phq9_total}/27
                       </span>
                       {v.phq9_crisis_flag && (
-                        <span className="block text-[10px] text-rose-500 font-bold">⚠️ Distress</span>
+                        <span className="block text-[10px] text-rose-500 font-bold">⚠️ {t('doctor.distress_flag')}</span>
                       )}
                     </td>
 
                     {/* Worker */}
                     <td className="py-3 px-4 text-slate-500 text-[11px]">
-                      {v.worker_name || v.worker_id || 'ASHA Worker'}
+                      {v.worker_name || v.worker_id || t('doctor.col_worker')}
                     </td>
 
                     {/* Action */}
@@ -313,7 +315,7 @@ export const DoctorDashboard: React.FC = () => {
                         onClick={() => handleOpenPatient(v)}
                         className="px-3 py-1.5 rounded-xl bg-clinical-teal hover:bg-clinical-teal-dark text-white font-bold text-xs inline-flex items-center gap-1 transition-colors"
                       >
-                        <span>Review</span>
+                        <span>{t('doctor.review')}</span>
                         <ChevronRight size={13} />
                       </button>
                     </td>
@@ -348,8 +350,8 @@ export const DoctorDashboard: React.FC = () => {
                   <span className="text-xs text-slate-400 font-mono">({selectedVisit.patient_id})</span>
                 </div>
                 <p className="text-xs text-slate-500 mt-1 flex items-center gap-2">
-                  <span>Village: <strong>{selectedVisit.village}</strong></span> •
-                  <span>Screened by: <strong>{selectedVisit.worker_name || selectedVisit.worker_id}</strong></span> •
+                  <span>{t('doctor.village_label')}: <strong>{selectedVisit.village}</strong></span> •
+                  <span>{t('doctor.screened_by')}: <strong>{selectedVisit.worker_name || selectedVisit.worker_id}</strong></span> •
                   <span>{new Date(selectedVisit.timestamp).toLocaleDateString()}</span>
                 </p>
               </div>
@@ -370,41 +372,41 @@ export const DoctorDashboard: React.FC = () => {
                 ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800 text-amber-950 dark:text-amber-100'
                 : 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 text-emerald-950 dark:text-emerald-100'
             }`}>
-              <span className="text-xs font-bold uppercase tracking-wider block opacity-75">Triage Direction</span>
+              <span className="text-xs font-bold uppercase tracking-wider block opacity-75">{t('doctor.triage_direction')}</span>
               <h3 className="text-base font-black mt-0.5">{selectedVisit.action_headline}</h3>
               <p className="text-xs mt-1 opacity-90 leading-relaxed">{selectedVisit.action_details}</p>
             </div>
 
             {/* Vital Signs Grid */}
             <div>
-              <h4 className="text-xs font-bold uppercase text-slate-500 mb-2">Screening Vitals Recorded</h4>
+              <h4 className="text-xs font-bold uppercase text-slate-500 mb-2">{t('doctor.vitals_recorded')}</h4>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60">
-                  <span className="text-[11px] text-slate-500 block">Blood Pressure</span>
+                  <span className="text-[11px] text-slate-500 block">{t('doctor.col_bp')}</span>
                   <span className="text-lg font-black text-slate-900 dark:text-white">
                     {selectedVisit.systolic_bp}/{selectedVisit.diastolic_bp}
                   </span>
-                  <span className="text-[10px] text-slate-400">mmHg</span>
+                  <span className="text-[10px] text-slate-400">{t('doctor.mmhg')}</span>
                 </div>
 
                 <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60">
-                  <span className="text-[11px] text-slate-500 block">Blood Glucose</span>
+                  <span className="text-[11px] text-slate-500 block">{t('patientInputs.glucose')}</span>
                   <span className="text-lg font-black text-slate-900 dark:text-white">
-                    {selectedVisit.blood_glucose_level}
+                    {selectedVisit.blood_glucose_level ?? '—'}
                   </span>
-                  <span className="text-[10px] text-slate-400">mg/dL</span>
+                  <span className="text-[10px] text-slate-400">{t('doctor.mgdl')}</span>
                 </div>
 
                 <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60">
-                  <span className="text-[11px] text-slate-500 block">HbA1c</span>
+                  <span className="text-[11px] text-slate-500 block">{t('patientInputs.hba1c')}</span>
                   <span className="text-lg font-black text-slate-900 dark:text-white">
-                    {selectedVisit.HbA1c_level}%
+                    {selectedVisit.HbA1c_level ?? '—'}%
                   </span>
-                  <span className="text-[10px] text-slate-400">Glycated Hemoglobin</span>
+                  <span className="text-[10px] text-slate-400">{t('doctor.hba1c_sub')}</span>
                 </div>
 
                 <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60">
-                  <span className="text-[11px] text-slate-500 block">PHQ-9 Depression</span>
+                  <span className="text-[11px] text-slate-500 block">{t('doctor.phq9_label')}</span>
                   <span className="text-lg font-black text-purple-600 dark:text-purple-400">
                     {selectedVisit.phq9_total}/27
                   </span>
@@ -415,7 +417,7 @@ export const DoctorDashboard: React.FC = () => {
 
             {/* Longitudinal Trend Timeline */}
             <div>
-              <h4 className="text-xs font-bold uppercase text-slate-500 mb-2">Longitudinal Trend History</h4>
+              <h4 className="text-xs font-bold uppercase text-slate-500 mb-2">{t('doctor.timeline_title')}</h4>
               <PatientTimeline patientId={selectedVisit.patient_id} />
             </div>
 
@@ -428,7 +430,7 @@ export const DoctorDashboard: React.FC = () => {
                   className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 transition-colors"
                 >
                   <FileText size={14} />
-                  <span>{loadingFhir ? 'Generating FHIR...' : 'Export FHIR R4 Bundle'}</span>
+                  <span>{loadingFhir ? '...' : t('doctor.export_fhir')}</span>
                 </button>
 
                 <a
@@ -440,7 +442,7 @@ export const DoctorDashboard: React.FC = () => {
                   className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white flex items-center gap-1.5 transition-colors"
                 >
                   <Share2 size={14} />
-                  <span>Send WhatsApp Advice</span>
+                  <span>{t('doctor.whatsapp_advice')}</span>
                 </a>
               </div>
 
@@ -448,14 +450,14 @@ export const DoctorDashboard: React.FC = () => {
                 onClick={() => setSelectedVisit(null)}
                 className="px-5 py-2 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-xs font-bold"
               >
-                Close
+                {t('doctor.close')}
               </button>
             </div>
 
             {/* FHIR R4 JSON Viewer */}
             {fhirData && (
               <div className="p-4 rounded-2xl bg-slate-950 text-emerald-400 font-mono text-xs overflow-x-auto max-h-60 border border-slate-800">
-                <span className="text-slate-400 text-[10px] uppercase font-bold block mb-1">HL7 FHIR R4 Validated Bundle</span>
+                <span className="text-slate-400 text-[10px] uppercase font-bold block mb-1">{t('doctor.fhir_title')}</span>
                 <pre>{JSON.stringify(fhirData, null, 2)}</pre>
               </div>
             )}

@@ -1,25 +1,7 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Brain, Heart, Phone, Calendar, ChevronRight, AlertTriangle, CheckCircle, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-const PHQ9_QUESTIONS = [
-  "Little interest or pleasure in doing things?",
-  "Feeling down, depressed, or hopeless?",
-  "Trouble falling or staying asleep, or sleeping too much?",
-  "Feeling tired or having little energy?",
-  "Poor appetite or overeating?",
-  "Feeling bad about yourself — or that you are a failure?",
-  "Trouble concentrating on things, such as reading or watching TV?",
-  "Moving or speaking so slowly that other people could have noticed — or the opposite?",
-  "Thoughts that you would be better off dead, or thoughts of hurting yourself?",
-];
-
-const FREQUENCY_OPTIONS = [
-  { label: "Not at all", value: 0 },
-  { label: "Several days", value: 1 },
-  { label: "More than half the days", value: 2 },
-  { label: "Nearly every day", value: 3 },
-];
 
 interface SeverityInfo {
   label: string;
@@ -30,51 +12,71 @@ interface SeverityInfo {
   advice: string;
 }
 
-const getSeverity = (score: number): SeverityInfo => {
-  if (score <= 4) return {
-    label: 'Minimal Depression', color: 'text-emerald-600 dark:text-emerald-400',
-    bg: 'bg-emerald-50 dark:bg-emerald-900/20', border: 'border-emerald-200 dark:border-emerald-800',
-    icon: <CheckCircle className="w-6 h-6 text-emerald-500" />,
-    advice: 'Your score suggests minimal depressive symptoms. Continue with healthy lifestyle habits and self-care.'
-  };
-  if (score <= 9) return {
-    label: 'Mild Depression', color: 'text-yellow-600 dark:text-yellow-400',
-    bg: 'bg-yellow-50 dark:bg-yellow-900/20', border: 'border-yellow-200 dark:border-yellow-800',
-    icon: <Info className="w-6 h-6 text-yellow-500" />,
-    advice: 'Mild symptoms detected. Consider speaking to a mental health professional or counsellor for guidance.'
-  };
-  if (score <= 14) return {
-    label: 'Moderate Depression', color: 'text-orange-600 dark:text-orange-400',
-    bg: 'bg-orange-50 dark:bg-orange-900/20', border: 'border-orange-200 dark:border-orange-800',
-    icon: <AlertTriangle className="w-6 h-6 text-orange-500" />,
-    advice: 'Moderate depression detected. We strongly recommend consulting a mental health professional. Help is available.'
-  };
-  if (score <= 19) return {
-    label: 'Moderately Severe Depression', color: 'text-red-600 dark:text-red-400',
-    bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-red-200 dark:border-red-800',
-    icon: <AlertTriangle className="w-6 h-6 text-red-500" />,
-    advice: 'Your score indicates moderately severe depression. Please reach out to a mental health professional or crisis line immediately.'
-  };
-  return {
-    label: 'Severe Depression', color: 'text-red-700 dark:text-red-300',
-    bg: 'bg-red-100 dark:bg-red-900/40', border: 'border-red-300 dark:border-red-700',
-    icon: <AlertTriangle className="w-6 h-6 text-red-700 animate-pulse" />,
-    advice: 'URGENT: Severe depression detected. Please contact a crisis helpline or emergency services immediately. You are not alone.'
-  };
-};
-
-const HELPLINES = [
-  { name: 'iCall (TISS)', number: '9152987821', desc: 'Psychological counselling' },
-  { name: 'Vandrevala Foundation', number: '1860-2662-345', desc: '24/7 mental health support' },
-  { name: 'AASRA', number: '9820466627', desc: 'Suicide prevention' },
-  { name: 'Snehi', number: '044-24640050', desc: 'Emotional support' },
-];
-
 export default function MentalHealthScreening() {
+  const { t } = useTranslation();
   const [answers, setAnswers] = useState<number[]>(Array(9).fill(-1));
   const [submitted, setSubmitted] = useState(false);
   const [showCounselling, setShowCounselling] = useState(false);
   const [currentQ, setCurrentQ] = useState(0);
+
+  const PHQ9_QUESTIONS = [
+    t('mentalHealth.q1'),
+    t('mentalHealth.q2'),
+    t('mentalHealth.q3'),
+    t('mentalHealth.q4'),
+    t('mentalHealth.q5'),
+    t('mentalHealth.q6'),
+    t('mentalHealth.q7'),
+    t('mentalHealth.q8'),
+    t('mentalHealth.q9'),
+  ];
+
+  const FREQUENCY_OPTIONS = [
+    { label: t('mentalHealth.opt0'), value: 0 },
+    { label: t('mentalHealth.opt1'), value: 1 },
+    { label: t('mentalHealth.opt2'), value: 2 },
+    { label: t('mentalHealth.opt3'), value: 3 },
+  ];
+
+  const getSeverity = (score: number): SeverityInfo => {
+    if (score <= 4) return {
+      label: t('mentalHealth.sev_minimal_label'), color: 'text-emerald-600 dark:text-emerald-400',
+      bg: 'bg-emerald-50 dark:bg-emerald-900/20', border: 'border-emerald-200 dark:border-emerald-800',
+      icon: <CheckCircle className="w-6 h-6 text-emerald-500" />,
+      advice: t('mentalHealth.sev_minimal_advice')
+    };
+    if (score <= 9) return {
+      label: t('mentalHealth.sev_mild_label'), color: 'text-yellow-600 dark:text-yellow-400',
+      bg: 'bg-yellow-50 dark:bg-yellow-900/20', border: 'border-yellow-200 dark:border-yellow-800',
+      icon: <Info className="w-6 h-6 text-yellow-500" />,
+      advice: t('mentalHealth.sev_mild_advice')
+    };
+    if (score <= 14) return {
+      label: t('mentalHealth.sev_moderate_label'), color: 'text-orange-600 dark:text-orange-400',
+      bg: 'bg-orange-50 dark:bg-orange-900/20', border: 'border-orange-200 dark:border-orange-800',
+      icon: <AlertTriangle className="w-6 h-6 text-orange-500" />,
+      advice: t('mentalHealth.sev_moderate_advice')
+    };
+    if (score <= 19) return {
+      label: t('mentalHealth.sev_mod_sev_label'), color: 'text-red-600 dark:text-red-400',
+      bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-red-200 dark:border-red-800',
+      icon: <AlertTriangle className="w-6 h-6 text-red-500" />,
+      advice: t('mentalHealth.sev_mod_sev_advice')
+    };
+    return {
+      label: t('mentalHealth.sev_severe_label'), color: 'text-red-700 dark:text-red-300',
+      bg: 'bg-red-100 dark:bg-red-900/40', border: 'border-red-300 dark:border-red-700',
+      icon: <AlertTriangle className="w-6 h-6 text-red-700 animate-pulse" />,
+      advice: t('mentalHealth.sev_severe_advice')
+    };
+  };
+
+  const HELPLINES = [
+    { name: t('mentalHealth.hl_icall_name'), number: '9152987821', desc: t('mentalHealth.hl_icall_desc') },
+    { name: t('mentalHealth.hl_vandrevala_name'), number: '1860-2662-345', desc: t('mentalHealth.hl_vandrevala_desc') },
+    { name: t('mentalHealth.hl_aasra_name'), number: '9820466627', desc: t('mentalHealth.hl_aasra_desc') },
+    { name: t('mentalHealth.hl_snehi_name'), number: '044-24640050', desc: t('mentalHealth.hl_snehi_desc') },
+  ];
 
   const totalScore = answers.reduce((sum, v) => sum + (v >= 0 ? v : 0), 0);
   const answered = answers.filter(a => a >= 0).length;
@@ -108,10 +110,9 @@ export default function MentalHealthScreening() {
             <Brain size={28} strokeWidth={2} />
           </div>
           <div>
-            <h2 className="text-xl font-display font-bold text-slate-900 dark:text-white">Mental Health Screening</h2>
+            <h2 className="text-xl font-display font-bold text-slate-900 dark:text-white">{t('mentalHealth.title')}</h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              PHQ-9 — Patient Health Questionnaire. Clinically validated depression screening tool.
-              Takes about 2 minutes.
+              {t('mentalHealth.subtitle')}
             </p>
           </div>
         </div>
@@ -122,8 +123,8 @@ export default function MentalHealthScreening() {
           {/* Progress */}
           <div className="space-y-2">
             <div className="flex justify-between text-xs font-medium text-slate-500">
-              <span>Question {Math.min(currentQ + 1, 9)} of 9</span>
-              <span>{answered} answered</span>
+              <span>{t('mentalHealth.question_of')} {Math.min(currentQ + 1, 9)} {t('mentalHealth.of')} 9</span>
+              <span>{answered} {t('mentalHealth.answered')}</span>
             </div>
             <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
               <motion.div
@@ -134,7 +135,7 @@ export default function MentalHealthScreening() {
               />
             </div>
             <p className="text-xs text-slate-400 text-center italic">
-              Over the last 2 weeks, how often have you been bothered by…
+              {t('mentalHealth.prompt')}
             </p>
           </div>
 
@@ -200,7 +201,7 @@ export default function MentalHealthScreening() {
               disabled={currentQ === 0}
               className="px-4 py-2 text-sm text-slate-500 hover:text-slate-800 disabled:opacity-30 transition-colors"
             >
-              ← Previous
+              ← {t('mentalHealth.prev')}
             </button>
 
             {currentQ < 8 ? (
@@ -209,7 +210,7 @@ export default function MentalHealthScreening() {
                 disabled={answers[currentQ] < 0}
                 className="px-6 py-2.5 bg-purple-500 text-white rounded-xl text-sm font-semibold disabled:opacity-40 hover:bg-purple-600 transition-colors flex items-center gap-2"
               >
-                Next <ChevronRight size={16} />
+                {t('mentalHealth.next')} <ChevronRight size={16} />
               </button>
             ) : (
               <button
@@ -217,7 +218,7 @@ export default function MentalHealthScreening() {
                 disabled={!allAnswered}
                 className="px-6 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl text-sm font-semibold disabled:opacity-40 hover:from-purple-600 hover:to-indigo-700 transition-all shadow-lg flex items-center gap-2"
               >
-                <Brain size={16} /> View Results
+                <Brain size={16} /> {t('mentalHealth.results_btn')}
               </button>
             )}
           </div>
@@ -236,7 +237,7 @@ export default function MentalHealthScreening() {
                 <div className="flex items-center gap-3">
                   {severity.icon}
                   <div>
-                    <p className="text-xs uppercase tracking-widest font-bold text-slate-500 dark:text-slate-400">PHQ-9 Score</p>
+                    <p className="text-xs uppercase tracking-widest font-bold text-slate-500 dark:text-slate-400">{t('mentalHealth.score_label')}</p>
                     <h3 className={`text-2xl font-bold font-display ${severity.color}`}>{severity.label}</h3>
                   </div>
                 </div>
@@ -257,10 +258,10 @@ export default function MentalHealthScreening() {
                 />
               </div>
               <div className="flex justify-between text-xs text-slate-400">
-                <span>Minimal (0-4)</span>
-                <span>Mild (5-9)</span>
-                <span>Moderate (10-14)</span>
-                <span>Severe (20+)</span>
+                <span>{t('mentalHealth.minimal')}</span>
+                <span>{t('mentalHealth.mild')}</span>
+                <span>{t('mentalHealth.moderate')}</span>
+                <span>{t('mentalHealth.severe')}</span>
               </div>
 
               <div className={`mt-6 p-4 rounded-xl ${severity.bg} border ${severity.border}`}>
@@ -270,7 +271,7 @@ export default function MentalHealthScreening() {
 
             {/* Answers Summary */}
             <div className="glass-panel p-6 rounded-3xl">
-              <h4 className="font-bold text-slate-900 dark:text-white mb-4">Response Summary</h4>
+              <h4 className="font-bold text-slate-900 dark:text-white mb-4">{t('mentalHealth.summary_title')}</h4>
               <div className="space-y-2">
                 {PHQ9_QUESTIONS.map((q, i) => (
                   <div key={i} className="flex items-center gap-3 text-sm">
@@ -295,7 +296,7 @@ export default function MentalHealthScreening() {
                 <div className="p-2 rounded-xl bg-rose-500/10">
                   <Phone size={20} className="text-rose-500" />
                 </div>
-                <h4 className="font-bold text-slate-900 dark:text-white">Mental Health Helplines (India)</h4>
+                <h4 className="font-bold text-slate-900 dark:text-white">{t('mentalHealth.helplines_title')}</h4>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {HELPLINES.map(h => (
@@ -314,13 +315,13 @@ export default function MentalHealthScreening() {
                 onClick={() => setShowCounselling(!showCounselling)}
                 className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl font-semibold text-sm hover:from-purple-600 hover:to-indigo-700 transition-all shadow-lg"
               >
-                <Calendar size={18} /> Book Counselling Session
+                <Calendar size={18} /> {t('mentalHealth.book_session')}
               </button>
               <button
                 onClick={handleReset}
                 className="flex items-center gap-2 px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-semibold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
               >
-                Retake Screening
+                {t('mentalHealth.retake')}
               </button>
             </div>
 
@@ -335,25 +336,24 @@ export default function MentalHealthScreening() {
                   <div className="p-2 rounded-xl bg-purple-500/10">
                     <Heart size={20} className="text-purple-500" />
                   </div>
-                  <h4 className="font-bold text-slate-900 dark:text-white">Counselling Resources</h4>
+                  <h4 className="font-bold text-slate-900 dark:text-white">{t('mentalHealth.resources_title')}</h4>
                 </div>
                 <div className="space-y-3 text-sm text-slate-600 dark:text-slate-400">
                   <div className="p-4 rounded-xl bg-purple-50/50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800">
-                    <p className="font-semibold text-purple-700 dark:text-purple-300 mb-1">🏥 iCall — TISS</p>
-                    <p>Professional counselling from trained psychologists. Call <span className="font-mono font-bold">9152987821</span> Mon–Sat 8am–10pm</p>
+                    <p className="font-semibold text-purple-700 dark:text-purple-300 mb-1">🏥 {t('mentalHealth.icall_title')}</p>
+                    <p>{t('mentalHealth.icall_desc')} (<span className="font-mono font-bold">9152987821</span>)</p>
                   </div>
                   <div className="p-4 rounded-xl bg-purple-50/50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800">
-                    <p className="font-semibold text-purple-700 dark:text-purple-300 mb-1">💬 Online Counselling</p>
-                    <p>Platforms like YourDOST, MindPeers, and Wysa offer chat-based mental health support with certified therapists.</p>
+                    <p className="font-semibold text-purple-700 dark:text-purple-300 mb-1">💬 {t('mentalHealth.online_title')}</p>
+                    <p>{t('mentalHealth.online_desc')}</p>
                   </div>
                   <div className="p-4 rounded-xl bg-purple-50/50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800">
-                    <p className="font-semibold text-purple-700 dark:text-purple-300 mb-1">🏨 Hospital OPD</p>
-                    <p>Visit the psychiatry OPD at your nearest government hospital. NIMHANS Bangalore: <span className="font-mono font-bold">080-46110007</span></p>
+                    <p className="font-semibold text-purple-700 dark:text-purple-300 mb-1">🏨 {t('mentalHealth.opd_title')}</p>
+                    <p>{t('mentalHealth.opd_desc')} (<span className="font-mono font-bold">080-46110007</span>)</p>
                   </div>
                 </div>
                 <p className="text-xs text-slate-400 mt-4 italic">
-                  Note: This screening is for informational purposes only and not a clinical diagnosis.
-                  Always consult a qualified mental health professional.
+                  {t('mentalHealth.note')}
                 </p>
               </motion.div>
             )}

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { getPatientTimeline, type PatientTimelineResponse } from '../api/client';
 import { History, TrendingUp, TrendingDown, Minus } from 'lucide-react';
@@ -8,6 +9,7 @@ interface PatientTimelineProps {
 }
 
 export const PatientTimeline: React.FC<PatientTimelineProps> = ({ patientId }) => {
+    const { t } = useTranslation();
     const [timeline, setTimeline] = useState<PatientTimelineResponse | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -24,7 +26,7 @@ export const PatientTimeline: React.FC<PatientTimelineProps> = ({ patientId }) =
         return (
             <div className="p-8 text-center text-slate-400">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-clinical-teal mx-auto mb-2"></div>
-                <span className="text-xs">Loading longitudinal patient history...</span>
+                <span className="text-xs">{t('timeline.loading')}</span>
             </div>
         );
     }
@@ -33,8 +35,8 @@ export const PatientTimeline: React.FC<PatientTimelineProps> = ({ patientId }) =
         return (
             <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-center text-slate-400">
                 <History size={24} className="mx-auto mb-2 opacity-30" />
-                <p className="text-xs font-semibold">First recorded visit for patient {patientId}.</p>
-                <p className="text-[11px] text-slate-500 mt-0.5">Subsequent visits will display trajectory & risk velocity curves.</p>
+                <p className="text-xs font-semibold">{t('timeline.first_visit')} {patientId}.</p>
+                <p className="text-[11px] text-slate-500 mt-0.5">{t('timeline.subsequent_note')}</p>
             </div>
         );
     }
@@ -53,19 +55,17 @@ export const PatientTimeline: React.FC<PatientTimelineProps> = ({ patientId }) =
 
     return (
         <div className="glass-panel p-6 rounded-3xl space-y-6 border border-white/20 dark:border-white/5 shadow-glass">
-            {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div>
                     <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <History className="text-clinical-teal" size={18} />
-                        Longitudinal Risk Timeline: {timeline.patient_name || timeline.patient_id}
+                        {t('timeline.title')}: {timeline.patient_name || timeline.patient_id}
                     </h3>
                     <p className="text-xs text-slate-500 mt-0.5">
-                        {timeline.total_visits} recorded screening visits across community health rounds.
+                        {timeline.total_visits} {t('timeline.recorded_visits')}
                     </p>
                 </div>
 
-                {/* Velocity Badge */}
                 <div className={`px-3 py-1.5 rounded-xl border flex items-center gap-2 text-xs font-bold ${isRising
                     ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 text-rose-700 dark:text-rose-300'
                     : isFalling
@@ -77,7 +77,6 @@ export const PatientTimeline: React.FC<PatientTimelineProps> = ({ patientId }) =
                 </div>
             </div>
 
-            {/* Risk Area Chart */}
             <div className="h-56 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={chartData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
@@ -93,35 +92,20 @@ export const PatientTimeline: React.FC<PatientTimelineProps> = ({ patientId }) =
                         <ReferenceLine y={65} stroke="#f43f5e" strokeDasharray="4 4" label={{ value: 'RED >65%', fill: '#f43f5e', fontSize: 10 }} />
                         <ReferenceLine y={35} stroke="#f59e0b" strokeDasharray="4 4" label={{ value: 'YELLOW >35%', fill: '#f59e0b', fontSize: 10 }} />
                         <Tooltip
-                            contentStyle={{
-                                backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                                borderRadius: '12px',
-                                border: '1px solid rgba(255,255,255,0.1)',
-                                color: '#f8fafc',
-                                fontSize: '11px'
-                            }}
+                            contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.95)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', color: '#f8fafc', fontSize: '11px' }}
                             formatter={(val: any, _name: any, props: any) => [
-                                `${val}% (Triage: ${props.payload.triage}) | Glucose: ${props.payload.glucose} mg/dL | PHQ-9: ${props.payload.phq9}`,
-                                'Risk Score'
+                                `${val}% (${props.payload.triage}) | Glu: ${props.payload.glucose ?? 'N/A'} | PHQ-9: ${props.payload.phq9}`,
+                                'Risk'
                             ]}
                         />
-                        <Area
-                            type="monotone"
-                            dataKey="risk"
-                            stroke="#0d9488"
-                            strokeWidth={3}
-                            fill="url(#timelineRiskGradient)"
-                            dot={{ fill: '#0d9488', r: 4 }}
-                            activeDot={{ r: 6 }}
-                        />
+                        <Area type="monotone" dataKey="risk" stroke="#0d9488" strokeWidth={3} fill="url(#timelineRiskGradient)" dot={{ fill: '#0d9488', r: 4 }} activeDot={{ r: 6 }} />
                     </AreaChart>
                 </ResponsiveContainer>
             </div>
 
-            {/* Visit Log Cards */}
             <div className="space-y-2.5">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-500 block">
-                    Historical Encounters
+                    {t('timeline.encounters')}
                 </span>
                 <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-60 overflow-y-auto">
                     {timeline.visits.slice().reverse().map((v, idx) => (
@@ -144,10 +128,10 @@ export const PatientTimeline: React.FC<PatientTimelineProps> = ({ patientId }) =
                             <div className="flex items-center gap-4">
                                 <div className="text-right">
                                     <span className="font-mono font-bold text-slate-700 dark:text-slate-300">
-                                        {(v.ml_risk_score * 100).toFixed(0)}% Risk
+                                        {(v.ml_risk_score * 100).toFixed(0)}{t('timeline.risk_pct')}
                                     </span>
                                     <span className="block text-[10px] text-slate-400">
-                                        Glu: {v.blood_glucose_level} | PHQ: {v.phq9_total}
+                                        {v.blood_glucose_level ?? 'No-Lab'} | PHQ: {v.phq9_total}
                                     </span>
                                 </div>
                                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${v.traffic_light === 'RED'

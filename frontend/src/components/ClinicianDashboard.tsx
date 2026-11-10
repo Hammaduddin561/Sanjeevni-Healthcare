@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import RiskGauge from './RiskGauge';
 import ShapExplainer from './ShapExplainer';
@@ -17,6 +18,7 @@ interface ClinicianDashboardProps {
 }
 
 const ClinicianDashboard: React.FC<ClinicianDashboardProps> = ({ prediction, patientInput, user }) => {
+    const { t } = useTranslation();
     const [report, setReport] = useState<string | null>(null);
     const [pdfUrl, setPdfUrl] = useState<string | null>(null);
     const [loadingReport, setLoadingReport] = useState(false);
@@ -91,9 +93,9 @@ const ClinicianDashboard: React.FC<ClinicianDashboardProps> = ({ prediction, pat
     };
 
     const getRiskLabel = (score: number) => {
-        if (score < 0.3) return 'Low Risk';
-        if (score < 0.7) return 'Moderate Risk';
-        return 'High Risk';
+        if (score < 0.3) return t('clinician.low_risk');
+        if (score < 0.7) return t('clinician.mod_risk');
+        return t('clinician.high_risk');
     }
 
     return (
@@ -104,8 +106,8 @@ const ClinicianDashboard: React.FC<ClinicianDashboardProps> = ({ prediction, pat
 
                 {/* Main Risk Gauge Card (Span 5) */}
                 <SectionCard
-                    title="Real-time Risk Profile"
-                    subtitle="Ensemble model prediction."
+                    title={t('clinician.risk_title')}
+                    subtitle={t('clinician.risk_sub')}
                     className="md:col-span-5 relative overflow-hidden shadow-glass dark:shadow-glass-dark"
                     action={
                         <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 ${getRiskColor(prediction.risk_score)}`}>
@@ -120,27 +122,27 @@ const ClinicianDashboard: React.FC<ClinicianDashboardProps> = ({ prediction, pat
                         {/* Validation Widget */}
                         <div className="mt-8 w-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-md rounded-xl p-4 border border-slate-200 dark:border-slate-700 flex items-center justify-between shadow-sm transition-all hover:shadow-md">
                             <div className="flex flex-col">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Clinician Validation</span>
-                                <span className="text-[10px] text-slate-400">Agree with AI Assessment?</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{t('clinician.validation')}</span>
+                                <span className="text-[10px] text-slate-400">{t('clinician.agree_q')}</span>
                             </div>
 
                             {feedbackStatus === 'submitted' ? (
                                 <span className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg flex items-center gap-1.5 text-xs font-bold border border-emerald-100">
-                                    <CheckCircle size={14} /> VERIFIED
+                                    <CheckCircle size={14} /> {t('clinician.verified')}
                                 </span>
                             ) : (
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => handleFeedback(true)}
                                         className="p-2 bg-slate-100 dark:bg-slate-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-lg transition-all transform active:scale-95"
-                                        title="Agree"
+                                        title={t('clinician.agree_q')}
                                     >
                                         <CheckCircle size={20} />
                                     </button>
                                     <button
                                         onClick={() => handleFeedback(false)}
                                         className="p-2 bg-slate-100 dark:bg-slate-700 hover:bg-rose-50 dark:hover:bg-rose-900/20 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg transition-all transform active:scale-95"
-                                        title="Disagree"
+                                        title={t('clinician.agree_q')}
                                     >
                                         <XCircle size={20} />
                                     </button>
@@ -152,14 +154,14 @@ const ClinicianDashboard: React.FC<ClinicianDashboardProps> = ({ prediction, pat
 
                 {/* Longitudinal Trends (Span 7) */}
                 <SectionCard
-                    title="Longitudinal Velocity"
-                    subtitle="Historical risk trajectory analysis."
+                    title={t('clinician.long_title')}
+                    subtitle={t('clinician.long_sub')}
                     className="md:col-span-7 shadow-glass dark:shadow-glass-dark"
                     action={
                         <button
                             onClick={handleDownloadFHIR}
                             className="bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 p-2 rounded-lg transition-colors border border-transparent hover:border-blue-200 dark:hover:border-blue-800"
-                            title="View FHIR Record"
+                            title={t('clinician.r4_bundle')}
                         >
                             <Code size={16} />
                         </button>
@@ -174,7 +176,7 @@ const ClinicianDashboard: React.FC<ClinicianDashboardProps> = ({ prediction, pat
 
                 {/* Cohort Analysis (Span 7) */}
                 <div className="lg:col-span-7 h-full">
-                    <SectionCard title="Cohort Intelligence" subtitle="Population comparison and nearest-neighbor Digital Twins." className="h-full shadow-glass dark:shadow-glass-dark">
+                    <SectionCard title={t('clinician.cohort_title')} subtitle={t('clinician.cohort_sub')} className="h-full shadow-glass dark:shadow-glass-dark">
                         <CohortCard patientData={patientInput} />
                     </SectionCard>
                 </div>
@@ -182,15 +184,15 @@ const ClinicianDashboard: React.FC<ClinicianDashboardProps> = ({ prediction, pat
                 {/* AI Summary (Span 5) */}
                 <div className="lg:col-span-5 flex flex-col h-full">
                     <SectionCard
-                        title="AI Clinical Summary"
-                        subtitle="Generated by BioMistral-7B."
+                        title={t('clinician.ai_title')}
+                        subtitle={t('clinician.ai_sub')}
                         className="flex-1 flex flex-col shadow-glass dark:shadow-glass-dark"
                     >
                         <div className="flex-grow flex flex-col min-h-[300px]">
                             {loadingReport ? (
                                 <div className="py-12 flex flex-col items-center justify-center text-slate-400 gap-3 flex-grow">
                                     <Loader2 className="animate-spin text-clinical-teal" size={32} />
-                                    <span className="text-xs font-medium uppercase tracking-widest text-center px-4">Please wait. Summary and PDF report are being generated...</span>
+                                    <span className="text-xs font-medium uppercase tracking-widest text-center px-4">{t('clinician.report_wait')}</span>
                                 </div>
                             ) : report ? (
                                 <div className="bg-slate-50/50 dark:bg-slate-900/30 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 text-sm leading-7 text-slate-700 dark:text-slate-300 font-medium overflow-y-auto max-h-[300px] shadow-inner custom-scrollbar prose dark:prose-invert max-w-none">
@@ -201,7 +203,7 @@ const ClinicianDashboard: React.FC<ClinicianDashboardProps> = ({ prediction, pat
                                     <div className="w-16 h-16 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center mb-4 inner-shadow">
                                         <Cpu size={28} className="text-slate-300" />
                                     </div>
-                                    <p className="text-sm font-medium">Generate a report to view AI insights.</p>
+                                    <p className="text-sm font-medium">{t('clinician.report_prompt')}</p>
                                 </div>
                             )}
 
@@ -212,7 +214,7 @@ const ClinicianDashboard: React.FC<ClinicianDashboardProps> = ({ prediction, pat
                                     className="w-full relative overflow-hidden group flex items-center justify-center space-x-2 px-4 py-3 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-200 text-white dark:text-slate-900 rounded-xl transition-all disabled:opacity-50 text-xs font-bold uppercase tracking-wider shadow-lg transform active:scale-[0.98]"
                                 >
                                     {loadingReport ? <Loader2 className="animate-spin" size={16} /> : <FileText size={16} />}
-                                    <span>{report ? 'Regenerate Analysis' : 'Generate Clinical Report'}</span>
+                                    <span>{report ? t('clinician.regenerate_btn') : t('clinician.generate_btn')}</span>
                                 </button>
 
                                 {pdfUrl && (
@@ -223,7 +225,7 @@ const ClinicianDashboard: React.FC<ClinicianDashboardProps> = ({ prediction, pat
                                         className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl transition-colors text-xs font-bold uppercase tracking-wider shadow-sm"
                                     >
                                         <Download size={16} />
-                                        <span>Download PDF Report</span>
+                                        <span>{t('clinician.download_pdf')}</span>
                                     </a>
                                 )}
                             </div>
@@ -233,12 +235,12 @@ const ClinicianDashboard: React.FC<ClinicianDashboardProps> = ({ prediction, pat
             </div>
 
             {/* 3. Interactive Simulation */}
-            <SectionCard title="Counterfactual Simulation" subtitle="What-If Analysis & Risk Projection" className="shadow-glass dark:shadow-glass-dark">
+            <SectionCard title={t('clinician.cf_title')} subtitle={t('clinician.cf_sub')} className="shadow-glass dark:shadow-glass-dark">
                 <SimulationDashboard originalData={patientInput} />
             </SectionCard>
 
             {/* 4. Explainability Details */}
-            <SectionCard title="Model Explainability" subtitle="Bilingual Plain Language Takeaways & SHAP Analysis" className="shadow-glass dark:shadow-glass-dark">
+            <SectionCard title={t('clinician.xai_title')} subtitle={t('clinician.xai_sub')} className="shadow-glass dark:shadow-glass-dark">
                 <ShapExplainer
                     explanations={prediction.explanations || []}
                     summary_en={prediction.summary_en}
@@ -252,7 +254,7 @@ const ClinicianDashboard: React.FC<ClinicianDashboardProps> = ({ prediction, pat
                     <div className="glass-panel w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 rounded-2xl shadow-2xl border border-white/20" onClick={e => e.stopPropagation()}>
                         <div className="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
                             <h3 className="text-lg font-display font-bold flex items-center gap-2 text-slate-800 dark:text-white">
-                                <Code className="text-clinical-teal" size={20} /> <span className="text-clinical-teal">FHIR</span> R4 Bundle
+                                <Code className="text-clinical-teal" size={20} /> <span className="text-clinical-teal">{t('clinician.fhir')}</span> {t('clinician.r4_bundle')}
                             </h3>
                             <button onClick={() => setFhirVisible(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
                                 <XCircle size={20} />
@@ -265,14 +267,14 @@ const ClinicianDashboard: React.FC<ClinicianDashboardProps> = ({ prediction, pat
                         </div>
                         <div className="p-4 border-t border-white/10 bg-white/50 dark:bg-slate-900/50 flex justify-end gap-3 backdrop-blur-md">
                             <button onClick={() => setFhirVisible(false)} className="px-5 py-2 text-xs font-bold uppercase tracking-wide text-slate-600 hover:bg-slate-200/50 rounded-lg transition-colors">
-                                Close
+                                {t('clinician.close')}
                             </button>
                             <button onClick={() => {
                                 navigator.clipboard.writeText(JSON.stringify(fhirBundle, null, 2));
                                 setFhirVisible(false);
                             }} className="px-5 py-2 bg-clinical-teal text-white text-xs font-bold uppercase tracking-wide rounded-lg hover:bg-clinical-teal-dark transition-colors shadow-lg shadow-clinical-teal/20 flex items-center gap-2">
                                 <Share2 size={14} />
-                                Copy JSON
+                                {t('clinician.copy_json')}
                             </button>
                         </div>
                     </div>

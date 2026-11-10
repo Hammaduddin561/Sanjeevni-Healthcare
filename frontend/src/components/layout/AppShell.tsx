@@ -1,4 +1,6 @@
 import React, { type ReactNode, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { changeLanguage } from '../../i18n';
 import { Activity, User, LogOut, ChevronDown, Sparkles, LayoutDashboard, FileClock, Brain, MessageCircle, Scale, Stethoscope } from 'lucide-react';
 import { Howl } from 'howler';
 
@@ -12,6 +14,8 @@ interface AppShellProps {
 
 const AppShell: React.FC<AppShellProps> = ({ children, user, onLogout, currentView = 'dashboard', onNavigate }) => {
     const [showUserMenu, setShowUserMenu] = useState(false);
+    const { t, i18n } = useTranslation();
+    const currentLang = i18n.language.startsWith('hi') ? 'hi' : 'en';
 
     const getInitials = (name: string) => {
         return name
@@ -61,46 +65,64 @@ const AppShell: React.FC<AppShellProps> = ({ children, user, onLogout, currentVi
                             className={`px-4 py-1.5 rounded-full transition-all flex items-center gap-2 ${currentView === 'screening' ? 'bg-white dark:bg-slate-700 text-clinical-teal dark:text-teal-400 shadow-sm font-bold' : 'hover:bg-white/50 dark:hover:bg-slate-700/50'}`}
                         >
                             <Stethoscope size={14} />
-                            Guided Visit
+                            {t('nav.screening')}
                         </button>
                         <button
                             onClick={() => { playClick(); onNavigate?.('dashboard'); }}
                             className={`px-4 py-1.5 rounded-full transition-all flex items-center gap-2 ${currentView === 'dashboard' ? 'bg-white dark:bg-slate-700 text-clinical-teal dark:text-teal-400 shadow-sm' : 'hover:bg-white/50 dark:hover:bg-slate-700/50'}`}
                         >
                             <LayoutDashboard size={14} />
-                            PHC Dashboard
+                            {t('nav.dashboard')}
                         </button>
                         <button
                             onClick={() => { playClick(); onNavigate?.('mental-health'); }}
                             className={`px-4 py-1.5 rounded-full transition-all flex items-center gap-2 ${currentView === 'mental-health' ? 'bg-white dark:bg-slate-700 text-purple-500 dark:text-purple-400 shadow-sm' : 'hover:bg-white/50 dark:hover:bg-slate-700/50'}`}
                         >
                             <Brain size={14} />
-                            Mental Health
+                            {t('nav.mental_health')}
                         </button>
                         <button
                             onClick={() => { playClick(); onNavigate?.('wellness-chat'); }}
                             className={`px-4 py-1.5 rounded-full transition-all flex items-center gap-2 ${currentView === 'wellness-chat' ? 'bg-white dark:bg-slate-700 text-green-500 dark:text-green-400 shadow-sm' : 'hover:bg-white/50 dark:hover:bg-slate-700/50'}`}
                         >
                             <MessageCircle size={14} />
-                            Wellness Guide
+                            {t('nav.assistant')}
                         </button>
                         <button
                             onClick={() => { playClick(); onNavigate?.('model-card'); }}
                             className={`px-4 py-1.5 rounded-full transition-all flex items-center gap-2 ${currentView === 'model-card' ? 'bg-white dark:bg-slate-700 text-teal-600 dark:text-teal-400 shadow-sm' : 'hover:bg-white/50 dark:hover:bg-slate-700/50'}`}
                         >
                             <Scale size={14} />
-                            Model Card
+                            {t('nav.model_card')}
                         </button>
-                        {(user?.role === 'admin' || user?.email === 'admin@hospital.org') && (
+                        {(user?.role === 'admin') && (
                             <button
                                 onClick={() => { playClick(); onNavigate?.('logs'); }}
                                 className={`px-4 py-1.5 rounded-full transition-all flex items-center gap-2 ${currentView === 'logs' ? 'bg-white dark:bg-slate-700 text-clinical-teal dark:text-teal-400 shadow-sm' : 'hover:bg-white/50 dark:hover:bg-slate-700/50'}`}
                             >
                                 <FileClock size={14} />
-                                Audit Logs
+                                {t('nav.audit_logs')}
                             </button>
                         )}
                     </nav>
+
+                    {/* Global Language Toggle */}
+                    <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-0.5 border border-slate-200 dark:border-slate-700 text-xs">
+                        <button
+                            type="button"
+                            onClick={() => changeLanguage('en')}
+                            className={`px-2 py-1 rounded-lg font-bold ${currentLang === 'en' ? 'bg-clinical-teal text-white' : 'text-slate-600 dark:text-slate-300'}`}
+                        >
+                            EN
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => changeLanguage('hi')}
+                            className={`px-2 py-1 rounded-lg font-bold ${currentLang === 'hi' ? 'bg-clinical-teal text-white' : 'text-slate-600 dark:text-slate-300'}`}
+                        >
+                            हिन्दी
+                        </button>
+                    </div>
 
                     <div className="h-8 w-px bg-slate-200 dark:bg-slate-700 hidden md:block" />
 
