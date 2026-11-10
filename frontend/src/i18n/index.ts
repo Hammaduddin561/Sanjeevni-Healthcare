@@ -8,7 +8,7 @@ const resources = {
   hi: { translation: hi }
 };
 
-const savedLanguage = localStorage.getItem('sanjeevni_language') || 'hi';
+const savedLanguage = localStorage.getItem('sanjeevni_language') || 'en';
 
 i18n
   .use(initReactI18next)

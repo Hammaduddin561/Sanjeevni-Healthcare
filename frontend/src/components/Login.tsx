@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Mail, Lock, Eye, EyeOff, User, ArrowRight, ShieldCheck, HeartPulse, Stethoscope } from 'lucide-react';
 import { login } from '../api/client';
+import { changeLanguage } from '../i18n';
 
 interface LoginProps {
   onLoginSuccess: (user: { email: string; name: string; role?: string; specialty?: string }) => void;
@@ -8,11 +10,9 @@ interface LoginProps {
 }
 
 const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToSignup }) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: ''
-  });
+  const { t, i18n } = useTranslation();
+  const currentLang = i18n.language.startsWith('hi') ? 'hi' : 'en';
+  const [formData, setFormData] = useState({ name: '', email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -24,11 +24,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToSignup }) => {
   };
 
   const setDemoAccount = (email: string, pass: string, roleName: string) => {
-    setFormData({
-      name: roleName,
-      email,
-      password: pass
-    });
+    setFormData({ name: roleName, email, password: pass });
     setError('');
   };
 
@@ -63,13 +59,9 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToSignup }) => {
     }
   };
 
-
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-clinical-bg dark:bg-clinical-bg-dark font-sans">
-
-      {/* Left: Branding / Visuals */}
       <div className="hidden lg:flex relative flex-col justify-between p-12 bg-slate-900 border-r border-slate-800 overflow-hidden">
-        {/* Abstract Background Elements */}
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-900 to-clinical-teal-dark opacity-50"></div>
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-clinical-teal/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
 
@@ -78,41 +70,40 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToSignup }) => {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-clinical-teal to-cyan-400 flex items-center justify-center shadow-lg shadow-clinical-teal/20">
               <ShieldCheck size={24} className="text-white" />
             </div>
-            <span className="text-2xl font-bold font-display tracking-wide">Sanjeevni Healthcarer</span>
+            <span className="text-2xl font-bold font-display tracking-wide">{t('brand.name')}</span>
           </div>
         </div>
 
         <div className="relative z-10 max-w-lg">
           <h1 className="text-5xl font-bold font-display text-white mb-6 leading-tight">
-            Your Health, <br />
+            {t('login.headline1')} <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-clinical-teal to-cyan-300">
-              Our Intelligence
+              {t('login.headline2')}
             </span>
           </h1>
-          <p className="text-slate-400 text-lg leading-relaxed">
-            Advanced clinical risk stratification using ensemble machine learning and interpretable AI to improve patient outcomes.
-          </p>
+          <p className="text-slate-400 text-lg leading-relaxed">{t('login.tagline')}</p>
         </div>
 
-        <div className="relative z-10 text-slate-500 text-sm">
-          © 2026 Sanjeevni Healthcarer • v1.0
-        </div>
+        <div className="relative z-10 text-slate-500 text-sm">{t('login.footer')}</div>
       </div>
 
-      {/* Right: Login Form */}
       <div className="flex items-center justify-center p-6 sm:p-12 relative">
         <div className="w-full max-w-[400px] space-y-8 animate-in slide-in-from-right-4 duration-500">
+          <div className="flex justify-end">
+            <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-0.5 border border-slate-200 dark:border-slate-700 text-xs">
+              <button type="button" onClick={() => changeLanguage('en')} className={`px-2.5 py-1 rounded-lg font-bold ${currentLang === 'en' ? 'bg-clinical-teal text-white' : 'text-slate-600'}`}>EN</button>
+              <button type="button" onClick={() => changeLanguage('hi')} className={`px-2.5 py-1 rounded-lg font-bold ${currentLang === 'hi' ? 'bg-clinical-teal text-white' : 'text-slate-600'}`}>हिन्दी</button>
+            </div>
+          </div>
 
           <div className="text-center lg:text-left space-y-2">
-            <h2 className="text-3xl font-bold font-display text-slate-900 dark:text-white">Welcome Back</h2>
-            <p className="text-slate-500 dark:text-slate-400">Sign in to access your dashboard</p>
+            <h2 className="text-3xl font-bold font-display text-slate-900 dark:text-white">{t('login.welcome')}</h2>
+            <p className="text-slate-500 dark:text-slate-400">{t('login.subtitle')}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-
-            {/* Name Field (Restored) */}
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300 ml-1">Full Name</label>
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300 ml-1">{t('login.full_name')}</label>
               <div className="relative group">
                 <User className="absolute left-3 top-3 text-slate-400 group-focus-within:text-clinical-teal transition-colors" size={18} />
                 <input
@@ -121,13 +112,13 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToSignup }) => {
                   value={formData.name}
                   onChange={handleInputChange}
                   className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-clinical-teal/50 focus:border-clinical-teal transition-all"
-                  placeholder="Dr. Name (Optional)"
+                  placeholder={t('login.name_placeholder')}
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300 ml-1">Email Address</label>
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300 ml-1">{t('login.email')}</label>
               <div className="relative group">
                 <Mail className="absolute left-3 top-3 text-slate-400 group-focus-within:text-clinical-teal transition-colors" size={18} />
                 <input
@@ -143,7 +134,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToSignup }) => {
 
             <div className="space-y-1.5">
               <div className="flex justify-between items-center ml-1">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Password</label>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('login.password')}</label>
               </div>
               <div className="relative group">
                 <Lock className="absolute left-3 top-3 text-slate-400 group-focus-within:text-clinical-teal transition-colors" size={18} />
@@ -165,30 +156,29 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToSignup }) => {
               </div>
             </div>
 
-            {/* Quick Demo Roles */}
             <div className="pt-1">
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Demo Role Quick Select</p>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">{t('login.demo_label')}</p>
               <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => setDemoAccount('worker@sanjeevni.org', 'Password@123', 'Sunita Devi (ASHA)')}
                   className="px-2 py-1.5 text-xs font-medium rounded-lg border border-purple-200 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 hover:bg-purple-100 transition-colors flex items-center justify-center gap-1"
                 >
-                  <HeartPulse size={12} /> ASHA Worker
+                  <HeartPulse size={12} /> {t('login.role_asha')}
                 </button>
                 <button
                   type="button"
                   onClick={() => setDemoAccount('doctor@phc.org', 'Password@123', 'Dr. Ramesh Gupta')}
                   className="px-2 py-1.5 text-xs font-medium rounded-lg border border-teal-200 dark:border-teal-800 bg-teal-50/50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300 hover:bg-teal-100 transition-colors flex items-center justify-center gap-1"
                 >
-                  <Stethoscope size={12} /> PHC Doctor
+                  <Stethoscope size={12} /> {t('login.role_doctor')}
                 </button>
                 <button
                   type="button"
                   onClick={() => setDemoAccount('admin@hospital.org', 'password123', 'System Administrator')}
                   className="px-2 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 transition-colors flex items-center justify-center gap-1"
                 >
-                  <ShieldCheck size={12} /> Admin
+                  <ShieldCheck size={12} /> {t('login.role_admin')}
                 </button>
               </div>
             </div>
@@ -208,24 +198,19 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToSignup }) => {
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
               ) : (
-                <>Sign In <ArrowRight size={18} /></>
+                <>{t('login.sign_in')} <ArrowRight size={18} /></>
               )}
             </button>
           </form>
 
           <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800 text-center">
             <p className="text-slate-500 dark:text-slate-400 text-sm">
-              Don't have an account?{' '}
+              {t('login.no_account')}{' '}
               <button onClick={onSwitchToSignup} className="text-clinical-teal font-semibold hover:underline">
-                Create Account
+                {t('login.create_account')}
               </button>
             </p>
           </div>
-
-          <div className="flex justify-center gap-4 mt-6 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
-            {/* Partner Logos or Badges could go here */}
-          </div>
-
         </div>
       </div>
     </div>

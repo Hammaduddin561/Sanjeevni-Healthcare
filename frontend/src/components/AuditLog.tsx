@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import SectionCard from './ui/SectionCard';
 import { getAuditLogs, type AuditEventRecord } from '../api/client';
 import { Loader2, Clock, ShieldCheck, AlertTriangle, CheckCircle2, RefreshCw } from 'lucide-react';
 
 const AuditLog: React.FC = () => {
+    const { t } = useTranslation();
     const [events, setEvents] = useState<AuditEventRecord[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -17,8 +19,8 @@ const AuditLog: React.FC = () => {
         } catch (err: any) {
             console.error(err);
             const msg = err?.response?.status === 403
-                ? "Forbidden: Only administrators can view audit logs."
-                : "Failed to load audit logs.";
+                ? t('auditLog.forbidden')
+                : t('auditLog.error');
             setError(msg);
         } finally {
             setLoading(false);
@@ -33,7 +35,7 @@ const AuditLog: React.FC = () => {
         if (outcome === 'success') {
             return (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-                    <CheckCircle2 size={12} /> Success
+                    <CheckCircle2 size={12} /> {t('auditLog.success')}
                 </span>
             );
         }
@@ -46,8 +48,8 @@ const AuditLog: React.FC = () => {
 
     return (
         <SectionCard
-            title="Admin Audit Log"
-            subtitle="Verified zero-PII system and security events (backed by /audit)."
+            title={t('auditLog.title')}
+            subtitle={t('auditLog.subtitle')}
             className="shadow-glass dark:shadow-glass-dark min-h-[500px]"
         >
             <div className="flex justify-end mb-4">
@@ -56,7 +58,7 @@ const AuditLog: React.FC = () => {
                     className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-xs font-bold flex items-center gap-1.5 transition-colors"
                 >
                     <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
-                    Refresh Audit Events
+                    {t('auditLog.refresh')}
                 </button>
             </div>
 
@@ -64,7 +66,7 @@ const AuditLog: React.FC = () => {
                 {loading ? (
                     <div className="flex flex-col items-center justify-center p-20 text-slate-400">
                         <Loader2 size={32} className="animate-spin mb-3 text-clinical-teal" />
-                        <span className="text-xs font-bold uppercase tracking-widest">Loading Audit Logs...</span>
+                        <span className="text-xs font-bold uppercase tracking-widest">{t('auditLog.loading')}</span>
                     </div>
                 ) : error ? (
                     <div className="p-10 text-center text-clinical-coral font-medium">
@@ -72,18 +74,18 @@ const AuditLog: React.FC = () => {
                     </div>
                 ) : events.length === 0 ? (
                     <div className="p-20 text-center text-slate-400">
-                        No audit events recorded yet.
+                        {t('auditLog.empty')}
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm">
                             <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
                                 <tr>
-                                    <th className="px-5 py-3.5 font-bold text-slate-500 uppercase tracking-wider text-xs">Timestamp</th>
-                                    <th className="px-5 py-3.5 font-bold text-slate-500 uppercase tracking-wider text-xs">Actor</th>
-                                    <th className="px-5 py-3.5 font-bold text-slate-500 uppercase tracking-wider text-xs">Action / Endpoint</th>
-                                    <th className="px-5 py-3.5 font-bold text-slate-500 uppercase tracking-wider text-xs">Outcome</th>
-                                    <th className="px-5 py-3.5 font-bold text-slate-500 uppercase tracking-wider text-xs">Metadata (Zero PII)</th>
+                                    <th className="px-5 py-3.5 font-bold text-slate-500 uppercase tracking-wider text-xs">{t('auditLog.col_timestamp')}</th>
+                                    <th className="px-5 py-3.5 font-bold text-slate-500 uppercase tracking-wider text-xs">{t('auditLog.col_actor')}</th>
+                                    <th className="px-5 py-3.5 font-bold text-slate-500 uppercase tracking-wider text-xs">{t('auditLog.col_action')}</th>
+                                    <th className="px-5 py-3.5 font-bold text-slate-500 uppercase tracking-wider text-xs">{t('auditLog.col_outcome')}</th>
+                                    <th className="px-5 py-3.5 font-bold text-slate-500 uppercase tracking-wider text-xs">{t('auditLog.col_meta')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
