@@ -11,6 +11,8 @@ services:
       - ./backend/models/weights:/app/backend/models/weights
     environment:
       - PORT=7860
+      - APP_ENV=development
+      - SECRET_KEY=dev-insecure-secret-key-change-in-production
 
   frontend:
     build:

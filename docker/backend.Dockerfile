@@ -1,5 +1,5 @@
-# Use Python 3.9-slim for compatibility and size
-FROM python:3.9-slim
+# Use Python 3.12-slim for compatibility and size
+FROM python:3.12-slim
 
 # Set working directory
 WORKDIR /app
@@ -17,6 +17,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the backend code into /app/backend to maintain package structure
 COPY backend ./backend
+
+# CRITICAL: Copy data directory (Required for Cohort Engine)
+COPY data ./data
 
 # Create a writable directory for the model (Hugging Face Spaces requirement)
 RUN mkdir -p /app/backend/models/weights && chmod -R 777 /app/backend/models/weights
