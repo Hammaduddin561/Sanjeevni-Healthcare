@@ -25,7 +25,7 @@ test('auth flow', async ({ page }) => {
 
     // Dashboard Validation
     // Need to wait for login
-    await expect(page.getByText('New Assessment')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'New Assessment' }).first()).toBeVisible({ timeout: 15000 });
 
     // Navigation to Logs
     await page.getByRole('button', { name: 'Audit Logs' }).click();

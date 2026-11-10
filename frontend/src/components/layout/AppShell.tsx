@@ -1,13 +1,13 @@
 import React, { type ReactNode, useState } from 'react';
-import { Activity, User, LogOut, ChevronDown, Sparkles, LayoutDashboard, FileClock, Brain, MessageCircle, Scale } from 'lucide-react';
+import { Activity, User, LogOut, ChevronDown, Sparkles, LayoutDashboard, FileClock, Brain, MessageCircle, Scale, Stethoscope } from 'lucide-react';
 import { Howl } from 'howler';
 
 interface AppShellProps {
     children: ReactNode;
     user?: { email: string; name: string; role?: string; specialty?: string } | null;
     onLogout?: () => void;
-    currentView?: 'dashboard' | 'logs' | 'mental-health' | 'wellness-chat' | 'model-card';
-    onNavigate?: (view: 'dashboard' | 'logs' | 'mental-health' | 'wellness-chat' | 'model-card') => void;
+    currentView?: 'screening' | 'dashboard' | 'logs' | 'mental-health' | 'wellness-chat' | 'model-card';
+    onNavigate?: (view: 'screening' | 'dashboard' | 'logs' | 'mental-health' | 'wellness-chat' | 'model-card') => void;
 }
 
 const AppShell: React.FC<AppShellProps> = ({ children, user, onLogout, currentView = 'dashboard', onNavigate }) => {
@@ -57,11 +57,18 @@ const AppShell: React.FC<AppShellProps> = ({ children, user, onLogout, currentVi
                 <div className="flex items-center gap-5">
                     <nav className="hidden md:flex items-center gap-1 text-sm font-medium text-slate-600 dark:text-slate-400 bg-slate-100/50 dark:bg-slate-800/50 rounded-full px-1.5 py-1 border border-white/20 dark:border-white/5">
                         <button
+                            onClick={() => { playClick(); onNavigate?.('screening'); }}
+                            className={`px-4 py-1.5 rounded-full transition-all flex items-center gap-2 ${currentView === 'screening' ? 'bg-white dark:bg-slate-700 text-clinical-teal dark:text-teal-400 shadow-sm font-bold' : 'hover:bg-white/50 dark:hover:bg-slate-700/50'}`}
+                        >
+                            <Stethoscope size={14} />
+                            Guided Visit
+                        </button>
+                        <button
                             onClick={() => { playClick(); onNavigate?.('dashboard'); }}
                             className={`px-4 py-1.5 rounded-full transition-all flex items-center gap-2 ${currentView === 'dashboard' ? 'bg-white dark:bg-slate-700 text-clinical-teal dark:text-teal-400 shadow-sm' : 'hover:bg-white/50 dark:hover:bg-slate-700/50'}`}
                         >
                             <LayoutDashboard size={14} />
-                            Dashboard
+                            PHC Dashboard
                         </button>
                         <button
                             onClick={() => { playClick(); onNavigate?.('mental-health'); }}

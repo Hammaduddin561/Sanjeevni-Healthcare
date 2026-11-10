@@ -23,7 +23,7 @@ from backend.schemas.patient import (
 )
 
 # Import Routes
-from backend.routes import auth, cohort, feedback, fhir
+from backend.routes import auth, cohort, feedback, fhir, visit
 
 from fastapi.staticfiles import StaticFiles
 from backend.models.pdf_service import PDFService
@@ -78,6 +78,7 @@ app.include_router(auth.router)
 app.include_router(cohort.router)
 app.include_router(feedback.router)
 app.include_router(fhir.router)
+app.include_router(visit.router)
 
 def get_shared_risk_engine(request: Request) -> RiskEngine:
     engine = getattr(request.app.state, "risk_engine", None)
