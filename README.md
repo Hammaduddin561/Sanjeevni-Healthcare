@@ -191,6 +191,22 @@ cd frontend && npm run build
 
 ---
 
-## 7. Credits & Open-Source Stack
+## 7. Future Roadmap & Planned Upgrades
+
+### Near-Term Engineering Milestones
+1. **Lean Production Packaging**: Separate offline evaluation/counterfactual dependencies (`dice-ml`, `fairlearn`) into `backend/requirements-dev.txt` so production runtimes remain minimal and container builds stay lightweight.
+2. **CI/CD & Expanded End-to-End Verification**: Automated GitHub Actions workflow running `pytest`, `eslint`, `npm run build`, and expanded Playwright browser tests across Hindi mode, No-Lab routing, offline reload + IndexedDB sync, and JWT `401` redirects.
+3. **One-Click Free-Tier Deployment & Live Health Telemetry**: Add `render.yaml` + hardened `vercel.json` blueprints and upgrade `GET /health` with an active database connectivity (`SELECT 1`) check plus optional LLM reachability status.
+4. **Submission & Clinical Documentation**: Finalized pitch brief, live demo walkthrough script, and architecture/judging rubric traceability docs (`docs/submission/`).
+
+### Long-Term Clinical & Ecosystem Expansion
+1. **Indian Rural Cohort Calibration & Bias Mitigation**: Retrain and recalibrate thresholds on prospective Indian PHC / sub-centre clinical data to reduce under-45 false negatives (`<30` and `30-44` bands) and lower `60+` false positives.
+2. **ABDM / ABHA & PHC EHR Sync**: Integrate Ayushman Bharat Health Account (ABHA) verification and push HL7 FHIR R4 Bundles directly into National Digital Health Mission / state PHC registries.
+3. **Regional Indian Languages & Offline Voice ASR**: Extend `i18next` and grounded local guideline retrieval beyond English and हिन्दी to regional languages (e.g., Marathi, Bhojpuri, Bengali, Tamil) paired with on-device speech recognition.
+4. **Automated Follow-Up Reminders & District Analytics**: Trigger automated SMS / IVR follow-up alerts for `YELLOW` 7-day referrals and migrate SQLite to PostgreSQL for block/district-level epidemiological hotspot monitoring.
+
+---
+
+## 8. Credits & Open-Source Stack
 - **Clinical Guidelines Referenced**: ADA Standards of Care thresholds, AHA/ACC Hypertension staging, Kroenke et al. PHQ-9 scoring, Indian mental health helplines (`Tele-MANAS 14416`, `KIRAN`).
 - **Libraries**: FastAPI, XGBoost, scikit-learn, SHAP, interpretml/DiCE, Fairlearn, HL7 FHIR R4, React 19, Vite 8, Tailwind CSS, `i18next`, Framer Motion, Recharts, Three.js.
