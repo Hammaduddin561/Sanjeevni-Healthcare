@@ -1,0 +1,4 @@
+Method,Name,Error,Occurrences
+POST,/predict,"ConnectionResetError(10054, 'An existing connection was forcibly closed by the remote host', None, 10054, None)",6
+POST,/explain,"ConnectionResetError(10054, 'An existing connection was forcibly closed by the remote host', None, 10054, None)",2
+POST,/report,"ConnectionResetError(10054, 'An existing connection was forcibly closed by the remote host', None, 10054, None)",1
