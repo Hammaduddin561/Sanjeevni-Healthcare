@@ -9,7 +9,7 @@ import json
 sys.path.append(os.getcwd())
 
 from backend.utils.logger import app_logger, audit_logger
-from backend.models.risk_engine import RiskEngine
+from backend.models.risk_engine import RiskEngine, build_bilingual_plain_explanations
 from backend.models.cohort_engine import CohortEngine
 from backend.models.counterfactuals import Counterfactuals
 from backend.models.clinical_llm import ClinicalLLM
@@ -19,7 +19,7 @@ from backend.services.history import HistoryService
 from backend.schemas.patient import (
     PatientRequest, RiskResponse, ExplanationResponse, 
     ReportResponse, SimulationRequest, SimulationResponse,
-    ReportGenerationRequest
+    ReportGenerationRequest, CounterfactualResponse
 )
 
 # Import Routes
@@ -165,10 +165,55 @@ def explain_risk(patient: PatientRequest, engine: RiskEngine = Depends(get_share
         data.pop('phq9_scores', None)
         
         explanations = engine.explain_risk(data)
-        return {"explanations": explanations}
+        summary_en, summary_hi = build_bilingual_plain_explanations(explanations, data)
+        return {
+            "explanations": explanations,
+            "summary_en": summary_en,
+            "summary_hi": summary_hi
+        }
     except Exception as e:
         app_logger.exception("Explain failed")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/counterfactuals", response_model=CounterfactualResponse)
+def get_counterfactuals(patient: PatientRequest, engine: RiskEngine = Depends(get_shared_risk_engine)):
+    try:
+        cf = Counterfactuals(engine)
+        p_dict = patient.model_dump()
+        scenarios = cf.simulate_scenarios(p_dict)
+        return {"scenarios": scenarios}
+    except Exception as e:
+        app_logger.exception("Counterfactual generation failed")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/model-card")
+def get_model_card():
+    from pathlib import Path
+    metrics_path = Path("backend/models/metrics.json")
+    fairness_path = Path("backend/models/fairness.json")
+    metrics_data = {}
+    fairness_data = {}
+    if metrics_path.exists():
+        with open(metrics_path, "r", encoding="utf-8") as f:
+            metrics_data = json.load(f)
+    if fairness_path.exists():
+        with open(fairness_path, "r", encoding="utf-8") as f:
+            fairness_data = json.load(f)
+            
+    return {
+        "model_name": "Sanjeevni Calibrated XGBoost Risk Engine (v1.0)",
+        "intended_use": "Rural community health worker screening and clinical decision support for 5-minute visits. Triages patients into Green, Yellow, and Red pathways.",
+        "data_source": "CDC/Kaggle Diabetes Screening Benchmark (100,000+ patient records) with clinical vitals and lab panels.",
+        "limitations": [
+            "Research prototype for decision support only.",
+            "Not an automated diagnostic tool or clinical device.",
+            "Requires confirmatory venous blood testing and clinical evaluation by a licensed physician.",
+            "Synthetic and benchmark datasets may not reflect local micro-epidemiology in all rural sub-districts."
+        ],
+        "metrics": metrics_data,
+        "fairness": fairness_data,
+        "disclaimer": "Sanjeevni Healthcarer is an explainable AI research prototype for clinical decision support. It is not an FDA/CDSCO approved diagnostic device and must never replace qualified clinical judgment."
+    }
 
 @app.post("/simulate", response_model=SimulationResponse)
 def simulate_risk(request: SimulationRequest, engine: RiskEngine = Depends(get_shared_risk_engine)):

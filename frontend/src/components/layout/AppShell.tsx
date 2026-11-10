@@ -1,13 +1,13 @@
 import React, { type ReactNode, useState } from 'react';
-import { Activity, User, LogOut, ChevronDown, Sparkles, LayoutDashboard, FileClock, Brain, MessageCircle } from 'lucide-react';
+import { Activity, User, LogOut, ChevronDown, Sparkles, LayoutDashboard, FileClock, Brain, MessageCircle, Scale } from 'lucide-react';
 import { Howl } from 'howler';
 
 interface AppShellProps {
     children: ReactNode;
     user?: { email: string; name: string; role?: string; specialty?: string } | null;
     onLogout?: () => void;
-    currentView?: 'dashboard' | 'logs' | 'mental-health' | 'wellness-chat';
-    onNavigate?: (view: 'dashboard' | 'logs' | 'mental-health' | 'wellness-chat') => void;
+    currentView?: 'dashboard' | 'logs' | 'mental-health' | 'wellness-chat' | 'model-card';
+    onNavigate?: (view: 'dashboard' | 'logs' | 'mental-health' | 'wellness-chat' | 'model-card') => void;
 }
 
 const AppShell: React.FC<AppShellProps> = ({ children, user, onLogout, currentView = 'dashboard', onNavigate }) => {
@@ -76,6 +76,13 @@ const AppShell: React.FC<AppShellProps> = ({ children, user, onLogout, currentVi
                         >
                             <MessageCircle size={14} />
                             Wellness Guide
+                        </button>
+                        <button
+                            onClick={() => { playClick(); onNavigate?.('model-card'); }}
+                            className={`px-4 py-1.5 rounded-full transition-all flex items-center gap-2 ${currentView === 'model-card' ? 'bg-white dark:bg-slate-700 text-teal-600 dark:text-teal-400 shadow-sm' : 'hover:bg-white/50 dark:hover:bg-slate-700/50'}`}
+                        >
+                            <Scale size={14} />
+                            Model Card
                         </button>
                         {(user?.role === 'admin' || user?.email === 'admin@hospital.org') && (
                             <button

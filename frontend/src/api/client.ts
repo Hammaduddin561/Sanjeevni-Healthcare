@@ -91,16 +91,58 @@ export interface PredictionResponse {
         feature: string;
         impact_score: number;
         impact_description: string;
+        value?: any;
+        plain_text_en?: string;
+        plain_text_hi?: string;
     }>;
+    summary_en?: string;
+    summary_hi?: string;
 }
+
+export interface CounterfactualScenario {
+    name: string;
+    change_description: string;
+    original_risk: number;
+    new_risk: number;
+    risk_reduction: number;
+    actionable_targets?: Record<string, any>;
+}
+
+export interface ModelCardData {
+    model_name: string;
+    intended_use: string;
+    data_source: string;
+    limitations: string[];
+    metrics: Record<string, any>;
+    fairness: Record<string, any>;
+    disclaimer: string;
+}
+
+export const getModelCard = async (): Promise<ModelCardData> => {
+    const res = await apiClient.get<ModelCardData>('/model-card');
+    return res.data;
+};
+
+export const getCounterfactuals = async (patient: PredictionInput): Promise<{ scenarios: CounterfactualScenario[] }> => {
+    const res = await apiClient.post<{ scenarios: CounterfactualScenario[] }>('/counterfactuals', patient);
+    return res.data;
+};
 
 export const predictRisk = async (data: PredictionInput): Promise<PredictionResponse> => {
     const predictionRes = await apiClient.post<{ risk_score: number; risk_level: string }>('/predict', data);
 
     let explanations: PredictionResponse['explanations'] = [];
+    let summary_en: string | undefined;
+    let summary_hi: string | undefined;
     try {
-        const explainRes = await apiClient.post<{ explanations: PredictionResponse['explanations'] }>('/explain', data);
+        const explainRes = await apiClient.post<{
+            explanations: PredictionResponse['explanations'];
+            summary_en?: string;
+            summary_hi?: string;
+        }>('/explain', data);
         explanations = explainRes.data.explanations;
+        summary_en = explainRes.data.summary_en;
+        summary_hi = explainRes.data.summary_hi;
     } catch (error) {
         console.warn("Could not fetch explanations:", error);
     }
@@ -113,7 +155,9 @@ export const predictRisk = async (data: PredictionInput): Promise<PredictionResp
     return {
         ...predictionRes.data,
         explanations,
-        shap_values
+        shap_values,
+        summary_en,
+        summary_hi
     };
 };
 

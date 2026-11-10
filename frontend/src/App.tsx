@@ -9,6 +9,7 @@ import StoryPage from './components/StoryPage';
 import GlobalBackground from './components/GlobalBackground';
 import MentalHealthScreening from './components/MentalHealthScreening';
 import WellnessChatbot from './components/WellnessChatbot';
+import ModelCard from './components/ModelCard';
 import { type PredictionResponse, type PredictionInput } from './api/client';
 import { Stethoscope, Brain } from 'lucide-react';
 import DigitalTwinModel from './components/DigitalTwinModel';
@@ -24,7 +25,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
-  const [view, setView] = useState<'dashboard' | 'logs' | 'mental-health' | 'wellness-chat'>('dashboard');
+  const [view, setView] = useState<'dashboard' | 'logs' | 'mental-health' | 'wellness-chat' | 'model-card'>('dashboard');
   const [showIntro, setShowIntro] = useState(false);
   const [predictionData, setPredictionData] = useState<PredictionResponse | null>(null);
   const [patientData, setPatientData] = useState<PredictionInput | null>(null);
@@ -104,7 +105,7 @@ function App() {
             onLogout={handleLogout}
             user={user}
             currentView={view}
-            onNavigate={(v) => setView(v as 'dashboard' | 'logs' | 'mental-health' | 'wellness-chat')}
+            onNavigate={(v) => setView(v as 'dashboard' | 'logs' | 'mental-health' | 'wellness-chat' | 'model-card')}
           >
             {view === 'logs' ? (
               <div className="max-w-5xl mx-auto">
@@ -117,6 +118,10 @@ function App() {
             ) : view === 'wellness-chat' ? (
               <div className="max-w-3xl mx-auto py-6">
                 <WellnessChatbot />
+              </div>
+            ) : view === 'model-card' ? (
+              <div className="max-w-5xl mx-auto py-6">
+                <ModelCard />
               </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start max-w-[1600px] mx-auto pb-12">

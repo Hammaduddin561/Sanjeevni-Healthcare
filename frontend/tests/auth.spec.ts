@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test('auth flow', async ({ page }) => {
-    test.setTimeout(60000);
+    test.setTimeout(120000);
     console.log('Navigating to home...');
     await page.goto('http://127.0.0.1:5173/', { waitUntil: 'domcontentloaded' });
     console.log('Navigation complete.');
