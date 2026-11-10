@@ -22,17 +22,25 @@ def convert_to_fhir(patient: PatientRequest, engine: RiskEngine = Depends(get_sh
         score = engine.predict_risk(data)
         level = "High" if score >= 0.6 else "Moderate" if score >= 0.2 else "Low"
         
-        # Convert resources
+        # 1. Patient Resource
         fhir_patient = FHIRConverter.to_patient(data)
-        fhir_assessment = FHIRConverter.to_risk_assessment(data, score, level)
+        patient_id = fhir_patient["id"]
+
+        # 2. Vital & Clinical Observations (Glucose, HbA1c, BMI, BP, PHQ-9)
+        fhir_observations = FHIRConverter.to_observations(data, patient_ref=patient_id)
+
+        # 3. Risk Assessment Resource
+        fhir_assessment = FHIRConverter.to_risk_assessment(data, score, level, patient_ref=patient_id)
         
+        entries = [{"resource": fhir_patient}]
+        for obs in fhir_observations:
+            entries.append({"resource": obs})
+        entries.append({"resource": fhir_assessment})
+
         return {
             "resourceType": "Bundle",
             "type": "collection",
-            "entry": [
-                {"resource": fhir_patient},
-                {"resource": fhir_assessment}
-            ]
+            "entry": entries
         }
     except ValueError as ve:
         logger.warning(f"Validation error generating FHIR bundle: {ve}")
@@ -40,4 +48,3 @@ def convert_to_fhir(patient: PatientRequest, engine: RiskEngine = Depends(get_sh
     except Exception as e:
         logger.exception("Unexpected failure during FHIR bundle conversion")
         raise HTTPException(status_code=500, detail=f"FHIR conversion error: {str(e)}")
-

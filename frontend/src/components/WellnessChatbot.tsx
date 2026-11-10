@@ -18,6 +18,8 @@ const QUICK_PROMPTS = [
   'मरीज का बीपी 180 से ऊपर है, क्या करें?'
 ];
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+
 export const WellnessChatbot: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -34,7 +36,7 @@ export const WellnessChatbot: React.FC = () => {
 
   useEffect(() => {
     // Health check
-    fetch('/llm/health')
+    fetch(`${API_BASE_URL}/llm/health`)
       .then(r => r.json())
       .then(d => setLlmOnline(d.status === 'ok'))
       .catch(() => setLlmOnline(false));
@@ -69,7 +71,7 @@ export const WellnessChatbot: React.FC = () => {
     setMessages(prev => [...prev, botPlaceholder]);
 
     try {
-      const response = await fetch('/chat/stream', {
+      const response = await fetch(`${API_BASE_URL}/chat/stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text.trim() })

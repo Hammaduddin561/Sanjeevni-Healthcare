@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import PatientInputs from './components/PatientInputs';
 import ClinicianDashboard from './components/ClinicianDashboard';
 import AppShell from './components/layout/AppShell';
@@ -11,9 +11,11 @@ import MentalHealthScreening from './components/MentalHealthScreening';
 import WellnessChatbot from './components/WellnessChatbot';
 import ModelCard from './components/ModelCard';
 import GuidedVisitFlow from './components/GuidedVisitFlow';
+import DoctorDashboard from './components/DoctorDashboard';
 import { type PredictionResponse, type PredictionInput } from './api/client';
 import { Stethoscope, Brain } from 'lucide-react';
-import DigitalTwinModel from './components/DigitalTwinModel';
+
+const DigitalTwinModel = lazy(() => import('./components/DigitalTwinModel'));
 
 interface User {
   email: string;
@@ -131,6 +133,10 @@ function App() {
               <div className="max-w-5xl mx-auto py-6">
                 <ModelCard />
               </div>
+            ) : view === 'dashboard' ? (
+              <div className="py-2">
+                <DoctorDashboard />
+              </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start max-w-[1600px] mx-auto pb-12">
 
@@ -159,9 +165,11 @@ function App() {
                     />
                   ) : (
                     <div className="glass-panel min-h-[600px] h-full rounded-3xl p-0 flex flex-col items-center justify-center text-center relative overflow-hidden bg-gradient-to-br from-white/40 to-white/10 dark:from-slate-900/40 dark:to-slate-900/10">
-                      {/* 3D Digital Twin Model */}
+                      {/* 3D Digital Twin Model (Lazy Loaded to avoid GPU load) */}
                       <div className="absolute inset-0 z-0">
-                        <DigitalTwinModel />
+                        <Suspense fallback={<div className="w-full h-full bg-slate-900/10 animate-pulse" />}>
+                          <DigitalTwinModel />
+                        </Suspense>
                       </div>
 
                       <div className="relative z-10 flex flex-col items-center pointer-events-none mt-40">
