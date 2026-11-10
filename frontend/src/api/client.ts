@@ -196,9 +196,19 @@ export interface PatientTimelineResponse {
     trend_status: string;
 }
 
+import { calculateOfflineRisk } from '../utils/offlineRiskCalculator';
+import { saveVisitToIndexedDB } from '../utils/offlineSync';
+
 export const submitScreeningVisit = async (visit: ScreeningVisitInput): Promise<ScreeningVisitResponse> => {
-    const res = await apiClient.post<ScreeningVisitResponse>('/visit', visit);
-    return res.data;
+    try {
+        const res = await apiClient.post<ScreeningVisitResponse>('/visit', visit);
+        return res.data;
+    } catch (err) {
+        console.warn("Backend unreachable; computing calibrated offline estimate and queuing to IndexedDB", err);
+        const offlineResult = calculateOfflineRisk(visit);
+        await saveVisitToIndexedDB(visit, offlineResult);
+        return offlineResult;
+    }
 };
 
 export const getPatientTimeline = async (patientId: string): Promise<PatientTimelineResponse> => {

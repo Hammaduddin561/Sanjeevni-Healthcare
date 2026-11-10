@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import {
     Activity, Heart, Brain, ChevronRight, ChevronLeft, AlertCircle,
     CheckCircle2, AlertTriangle, Phone, RefreshCw, Sparkles,
-    ShieldAlert, History, Mic, Volume2, Share2
+    ShieldAlert, History, Mic, Volume2, Share2, WifiOff
 } from 'lucide-react';
 import {
     submitScreeningVisit,
@@ -766,6 +766,11 @@ export const GuidedVisitFlow: React.FC<GuidedVisitFlowProps> = ({
                                 {result.safety_escalated && (
                                     <span className="px-3 py-1 rounded-full text-xs font-bold bg-purple-600 text-white flex items-center gap-1 shadow-sm">
                                         <ShieldAlert size={12} /> Safety Guardrail Escalated
+                                    </span>
+                                )}
+                                {result.visit_id.startsWith('offline_') && (
+                                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-600 text-white flex items-center gap-1 shadow-sm">
+                                        <WifiOff size={12} /> {t('triage.offline_badge')} (Queued for Sync)
                                     </span>
                                 )}
                                 <span className="text-xs text-slate-500">
