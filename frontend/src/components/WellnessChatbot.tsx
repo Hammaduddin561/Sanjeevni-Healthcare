@@ -18,7 +18,7 @@ const QUICK_PROMPTS = [
   'मरीज का बीपी 180 से ऊपर है, क्या करें?'
 ];
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+import { API_BASE_URL, handleUnauthorized } from '../api/client';
 
 export const WellnessChatbot: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
@@ -71,12 +71,20 @@ export const WellnessChatbot: React.FC = () => {
     setMessages(prev => [...prev, botPlaceholder]);
 
     try {
+      const token = localStorage.getItem('authToken');
       const response = await fetch(`${API_BASE_URL}/chat/stream`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
         body: JSON.stringify({ message: text.trim() })
       });
 
+      if (response.status === 401) {
+        handleUnauthorized();
+        return;
+      }
       if (!response.ok || !response.body) {
         throw new Error('Streaming failed');
       }

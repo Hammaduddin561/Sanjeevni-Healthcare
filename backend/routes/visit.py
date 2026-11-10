@@ -8,11 +8,14 @@ from sqlalchemy import desc, case
 
 from backend.database import get_db, Base, engine
 from backend.models.visit import Visit
+from backend.models.user import User
+from backend.models.audit import record_audit_event
 from backend.models.risk_engine import RiskEngine, build_bilingual_plain_explanations
 from backend.models.safety_layer import SafetyLayer
 from backend.services.history import HistoryService
 from backend.schemas.patient import VisitCreateRequest, VisitResponse, PatientTimelineResponse
 from backend.utils.logger import app_logger, audit_logger
+from backend.auth import get_current_user
 
 # Ensure table exists
 Base.metadata.create_all(bind=engine)
@@ -30,7 +33,8 @@ def get_risk_engine(request: Request):
 def conduct_screening_visit(
     request: VisitCreateRequest,
     db: Session = Depends(get_db),
-    engine: RiskEngine = Depends(get_risk_engine)
+    engine: RiskEngine = Depends(get_risk_engine),
+    current_user: User = Depends(get_current_user)
 ):
     """
     Core ASHA 5-Minute Screening Visit endpoint.
@@ -42,8 +46,8 @@ def conduct_screening_visit(
         p_dict = request.model_dump()
         client_visit_id = request.visit_id or f"vis_{uuid.uuid4().hex[:12]}"
         patient_id = request.patient_id or f"P_{uuid.uuid4().hex[:8].upper()}"
-        worker_id = request.worker_id or request.clinician_id or "worker@sanjeevni.org"
-        worker_name = request.worker_name or request.clinician_name or "Community Health Worker"
+        worker_id = current_user.email
+        worker_name = current_user.name or current_user.email
 
         # Check idempotency for offline retries
         existing_visit = db.query(Visit).filter(Visit.visit_id == client_visit_id).first()
@@ -136,9 +140,19 @@ def conduct_screening_visit(
             risk_level=safety_eval.final_triage
         )
 
-        audit_logger.info(
-            "Screening visit recorded. ID: %s, Patient: %s, Triage: %s, Safety Escalated: %s",
-            client_visit_id, patient_id, safety_eval.final_triage, safety_eval.safety_escalated
+        record_audit_event(
+            db=db,
+            actor_email=current_user.email,
+            actor_role=current_user.role,
+            action="VISIT_SCREEN",
+            resource="/visit",
+            outcome="success",
+            details={
+                "visit_id": client_visit_id,
+                "triage": safety_eval.final_triage,
+                "safety_escalated": safety_eval.safety_escalated,
+                "village": db_visit.village
+            }
         )
 
         return VisitResponse(
@@ -178,14 +192,30 @@ def conduct_screening_visit(
 
 
 @router.get("/patients/{patient_id}/timeline", response_model=PatientTimelineResponse)
-def get_patient_timeline(patient_id: str, db: Session = Depends(get_db)):
+def get_patient_timeline(
+    patient_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     """Fetches chronological visit timeline for a patient with risk velocity analysis."""
-    visits = (
-        db.query(Visit)
-        .filter(Visit.patient_id == patient_id)
-        .order_by(Visit.timestamp.asc())
-        .all()
-    )
+    base_query = db.query(Visit).filter(Visit.patient_id == patient_id)
+    user_role = getattr(current_user, "role", "worker")
+
+    if user_role == "worker":
+        all_for_patient = base_query.all()
+        visits = (
+            base_query
+            .filter(Visit.worker_id == current_user.email)
+            .order_by(Visit.timestamp.asc())
+            .all()
+        )
+        if all_for_patient and not visits:
+            raise HTTPException(
+                status_code=403,
+                detail="Access forbidden: workers can only view timelines for their own screened patients"
+            )
+    else:
+        visits = base_query.order_by(Visit.timestamp.asc()).all()
 
     if not visits:
         return PatientTimelineResponse(
@@ -241,19 +271,26 @@ def list_visits(
     triage: Optional[str] = Query(None),
     worker_id: Optional[str] = Query(None),
     limit: int = Query(50, ge=1, le=200),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """
     Lists screening visits for PHC doctor dashboard and health workers.
+    Workers see ONLY their own visits; Doctor & Admin see all visits.
     Orders RED patients first to prioritize urgent clinical interventions!
     """
-    query = db.query(Visit)
+    user_role = getattr(current_user, "role", "worker")
+    base_scope = db.query(Visit)
+    if user_role == "worker":
+        base_scope = base_scope.filter(Visit.worker_id == current_user.email)
+    elif worker_id:
+        base_scope = base_scope.filter(Visit.worker_id == worker_id)
+
+    query = base_scope
     if village:
         query = query.filter(Visit.village == village)
     if triage:
         query = query.filter(Visit.final_triage == triage.upper())
-    if worker_id:
-        query = query.filter(Visit.worker_id == worker_id)
 
     # Order RED first, then YELLOW, then GREEN, then timestamp desc
     triage_priority = case(
@@ -291,16 +328,16 @@ def list_visits(
             "phq9_crisis_flag": v.phq9_crisis_flag
         })
 
-    # Summary counts
-    all_visits = db.query(Visit).all()
-    red_count = sum(1 for v in all_visits if v.final_triage == "RED")
-    yellow_count = sum(1 for v in all_visits if v.final_triage == "YELLOW")
-    green_count = sum(1 for v in all_visits if v.final_triage == "GREEN")
+    # Summary counts matching caller role scope
+    scoped_visits = base_scope.all()
+    red_count = sum(1 for v in scoped_visits if v.final_triage == "RED")
+    yellow_count = sum(1 for v in scoped_visits if v.final_triage == "YELLOW")
+    green_count = sum(1 for v in scoped_visits if v.final_triage == "GREEN")
 
     return {
         "visits": visits_out,
         "counts": {
-            "total": len(all_visits),
+            "total": len(scoped_visits),
             "red": red_count,
             "yellow": yellow_count,
             "green": green_count

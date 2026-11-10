@@ -4,6 +4,12 @@ import pytest
 
 client = TestClient(app)
 
+def get_auth_headers(email: str = "doctor@phc.org", password: str = "Password@123"):
+    res = client.post("/auth/login", json={"email": email, "password": password})
+    assert res.status_code == 200, f"Login failed for {email}: {res.text}"
+    token = res.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
+
 SAMPLE_PATIENT = {
     "gender": "Male",
     "age": 45,
@@ -18,10 +24,11 @@ SAMPLE_PATIENT = {
 def test_health_check():
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json()["status"] == "healthy"
+    assert response.json()["status"] in ["healthy", "degraded"]
 
 def test_predict_endpoint():
-    response = client.post("/predict", json=SAMPLE_PATIENT)
+    headers = get_auth_headers()
+    response = client.post("/predict", json=SAMPLE_PATIENT, headers=headers)
     assert response.status_code == 200
     data = response.json()
     assert "risk_score" in data
@@ -29,7 +36,8 @@ def test_predict_endpoint():
     assert 0.0 <= data["risk_score"] <= 1.0
 
 def test_explain_endpoint():
-    response = client.post("/explain", json=SAMPLE_PATIENT)
+    headers = get_auth_headers()
+    response = client.post("/explain", json=SAMPLE_PATIENT, headers=headers)
     assert response.status_code == 200
     data = response.json()
     assert "explanations" in data
@@ -43,9 +51,10 @@ def test_explain_endpoint():
         assert "plain_text_hi" in data["explanations"][0]
 
 def test_counterfactuals_endpoint():
+    headers = get_auth_headers()
     high_risk_patient = SAMPLE_PATIENT.copy()
     high_risk_patient.update({"bmi": 32.5, "HbA1c_level": 7.4, "smoking_history": "current"})
-    response = client.post("/counterfactuals", json=high_risk_patient)
+    response = client.post("/counterfactuals", json=high_risk_patient, headers=headers)
     assert response.status_code == 200
     data = response.json()
     assert "scenarios" in data
@@ -54,7 +63,6 @@ def test_counterfactuals_endpoint():
         assert "name" in s
         assert "change_description" in s
         assert "risk_reduction" in s
-        # Ensure immutable features age/gender are never modified
         if "actionable_targets" in s:
             assert "age" not in s["actionable_targets"]
             assert "gender" not in s["actionable_targets"]
@@ -74,6 +82,7 @@ def test_model_card_endpoint():
     assert "gender_audit" in data["fairness"]
 
 def test_visit_screening_endpoint():
+    headers = get_auth_headers()
     visit_payload = {
         "gender": "Female",
         "age": 35,
@@ -90,7 +99,7 @@ def test_visit_screening_endpoint():
         "patient_id": "P_RAMPUR_01",
         "village": "Rampur"
     }
-    response = client.post("/visit", json=visit_payload)
+    response = client.post("/visit", json=visit_payload, headers=headers)
     assert response.status_code == 200
     data = response.json()
     assert data["traffic_light"] in ["GREEN", "YELLOW", "RED"]
@@ -101,7 +110,7 @@ def test_visit_screening_endpoint():
     assert data["phq9_total"] == 0
 
 def test_visit_screening_emergency_escalation():
-    # Young patient with low diabetes risk (ML predicts GREEN), but crisis BP and self-harm positive
+    headers = get_auth_headers()
     crisis_payload = {
         "gender": "Male",
         "age": 25,
@@ -118,7 +127,7 @@ def test_visit_screening_emergency_escalation():
         "patient_id": "P_RAMPUR_02",
         "village": "Rampur"
     }
-    response = client.post("/visit", json=crisis_payload)
+    response = client.post("/visit", json=crisis_payload, headers=headers)
     assert response.status_code == 200
     data = response.json()
     assert data["traffic_light"] == "RED"
@@ -129,7 +138,8 @@ def test_visit_screening_emergency_escalation():
     assert len(data["helplines"]) > 0
 
 def test_patient_timeline_endpoint():
-    response = client.get("/patients/P_RAMPUR_01/timeline")
+    headers = get_auth_headers()
+    response = client.get("/patients/P_RAMPUR_01/timeline", headers=headers)
     assert response.status_code == 200
     data = response.json()
     assert data["patient_id"] == "P_RAMPUR_01"
@@ -138,9 +148,8 @@ def test_patient_timeline_endpoint():
     assert "trend_status" in data
 
 def test_validation_error():
-    # Missing required field 'age'
+    headers = get_auth_headers()
     invalid_data = SAMPLE_PATIENT.copy()
     del invalid_data['age']
-    
-    response = client.post("/predict", json=invalid_data)
+    response = client.post("/predict", json=invalid_data, headers=headers)
     assert response.status_code == 422

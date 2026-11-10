@@ -1,5 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from backend.schemas.patient import FeedbackRequest
+from backend.models.user import User
+from backend.auth import get_current_user
 import csv
 import os
 from datetime import datetime
@@ -9,7 +11,7 @@ router = APIRouter(prefix="/feedback", tags=["Feedback"])
 FEEDBACK_FILE = "data/clinician_feedback.csv"
 
 @router.post("/")
-def submit_feedback(feedback: FeedbackRequest):
+def submit_feedback(feedback: FeedbackRequest, current_user: User = Depends(get_current_user)):
     try:
         # Ensure file exists and write header
         file_exists = os.path.exists(FEEDBACK_FILE)
