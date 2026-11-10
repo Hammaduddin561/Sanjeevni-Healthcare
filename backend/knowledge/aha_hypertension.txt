@@ -1,0 +1,9 @@
+Source: AHA/ACC 2017 Guidelines for High Blood Pressure in Adults & WHO PEN Protocol
+Topic: Blood Pressure Categories, Screening, and Emergency Management
+Summary:
+Normal Blood Pressure: Systolic less than 120 mmHg AND Diastolic less than 80 mmHg.
+Elevated / Pre-hypertension: Systolic 120-129 mmHg AND Diastolic less than 80 mmHg.
+Stage 1 Hypertension: Systolic 130-139 mmHg OR Diastolic 80-89 mmHg.
+Stage 2 Hypertension: Systolic 140 mmHg or higher OR Diastolic 90 mmHg or higher. Requires referral to a Primary Health Centre (PHC) medical officer for clinical confirmation and antihypertensive evaluation.
+Hypertensive Crisis: Systolic exceeding 180 mmHg and/or Diastolic exceeding 120 mmHg. This is a medical emergency requiring immediate physician evaluation to assess for acute end-organ damage (chest pain, shortness of breath, visual changes, neurological deficits).
+Lifestyle Interventions: Reduce dietary sodium intake to under 2,000 mg (1 teaspoon of salt) per day. Incorporate potassium-rich fruits and vegetables, avoid tobacco and bidi smoking, limit alcohol, and maintain daily brisk walking.

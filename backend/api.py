@@ -12,7 +12,7 @@ from backend.utils.logger import app_logger, audit_logger
 from backend.models.risk_engine import RiskEngine, build_bilingual_plain_explanations
 from backend.models.cohort_engine import CohortEngine
 from backend.models.counterfactuals import Counterfactuals
-from backend.models.clinical_llm import ClinicalLLM
+from backend.models.llm_engine import LLMEngine
 from backend.services.history import HistoryService
 
 # Import Schemas
@@ -70,7 +70,7 @@ except Exception as e:
     cohort_engine = None
     app.state.cohort_engine = None
 
-clinical_llm = ClinicalLLM()
+llm_engine = LLMEngine()
 pdf_service = PDFService()
 
 # 3. Include Routers
@@ -246,16 +246,13 @@ def generate_simulation_report(request: SimulationRequest, engine: RiskEngine = 
         result = cf.predict_simulation(p_dict, request.modifications)
         new_risk = result['new_risk']
         
-        # Fallback to Mock if LLM is down
-        if clinical_llm is None or clinical_llm.model is None:
-             report = f"Simulated Analysis: Reducing risk factors has improved the projected outcome by {((original_risk - new_risk)*100):.1f}%. Sustained adherence to these targets is expected to yield long-term benefits. (AI Offline)"
-        else:
-            report = clinical_llm.generate_simulation_report(
-                request.patient.model_dump(), 
-                result['modified_data'], 
-                original_risk, 
-                new_risk
-            )
+        # Safe verified clinical summary
+        report = llm_engine.generate_doctor_summary(
+            patient_data=request.patient.model_dump(),
+            ml_risk_score=new_risk,
+            final_triage="SIMULATED",
+            escalation_reasons=[f"Risk reduced by {((original_risk - new_risk)*100):.1f}%"]
+        )
         return {"report": report}
     except Exception as e:
         app_logger.exception("Simulation report generation failed")
@@ -310,6 +307,39 @@ def generate_report(patient: PatientRequest, engine: RiskEngine = Depends(get_sh
     except Exception as e:
         app_logger.exception("Report generation failed")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/llm/health")
+def llm_health_check():
+    """Health check for external LLM endpoint."""
+    online = llm_engine.is_available()
+    return {
+        "status": "online" if online else "offline",
+        "model": llm_engine.model,
+        "base_url": llm_engine.base_url,
+        "mock_mode": llm_engine.mock_mode
+    }
+
+@app.post("/chat")
+def chat_endpoint(request: Dict[str, Any]):
+    """Standard grounded chat endpoint."""
+    msg = request.get("message", "")
+    history = request.get("history", [])
+    chunks = list(llm_engine.stream_chat(msg, history))
+    return {"reply": "".join(chunks)}
+
+@app.post("/chat/stream")
+def chat_stream_endpoint(request: Dict[str, Any]):
+    """Server-Sent Events streaming chatbot endpoint."""
+    msg = request.get("message", "")
+    history = request.get("history", [])
+
+    def event_generator():
+        for chunk in llm_engine.stream_chat(msg, history):
+            # Send SSE event format
+            yield f"data: {json.dumps({'chunk': chunk})}\n\n"
+        yield "data: [DONE]\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 @app.post("/report/stream")
 def generate_report_stream(patient: ReportGenerationRequest, engine: RiskEngine = Depends(get_shared_risk_engine)):
