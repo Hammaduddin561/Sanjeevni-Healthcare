@@ -128,6 +128,84 @@ export const getCounterfactuals = async (patient: PredictionInput): Promise<{ sc
     return res.data;
 };
 
+export interface ScreeningVisitInput extends PredictionInput {
+    visit_id?: string;
+    patient_id?: string;
+    worker_id?: string;
+    worker_name?: string;
+    village?: string;
+    systolic_bp?: number;
+    diastolic_bp?: number;
+    phq9_scores?: number[];
+    notes?: string;
+}
+
+export interface ScreeningVisitResponse {
+    visit_id: string;
+    patient_id: string;
+    patient_name?: string;
+    worker_id: string;
+    worker_name?: string;
+    village?: string;
+    timestamp: string;
+    traffic_light: 'GREEN' | 'YELLOW' | 'RED';
+    ml_triage: string;
+    ml_risk_score: number;
+    safety_escalated: boolean;
+    escalation_reasons: string[];
+    action_headline: string;
+    action_details: string;
+    bmi: number;
+    blood_glucose_level: number;
+    HbA1c_level: number;
+    systolic_bp?: number;
+    diastolic_bp?: number;
+    hypertension_flag: number;
+    phq9_total: number;
+    phq9_severity: string;
+    phq9_crisis_flag: boolean;
+    emergency_helpline_required: boolean;
+    helplines: Array<{ name: string; number: string; hours?: string }>;
+    explanations: PredictionResponse['explanations'];
+    summary_en?: string;
+    summary_hi?: string;
+}
+
+export interface PatientTimelineResponse {
+    patient_id: string;
+    patient_name?: string;
+    visits: Array<{
+        visit_id: string;
+        timestamp: string;
+        traffic_light: 'GREEN' | 'YELLOW' | 'RED';
+        ml_risk_score: number;
+        safety_escalated: boolean;
+        escalation_reasons: string[];
+        action_headline: string;
+        blood_glucose_level: number;
+        HbA1c_level: number;
+        systolic_bp?: number;
+        diastolic_bp?: number;
+        phq9_total: number;
+        phq9_severity: string;
+        phq9_crisis_flag: boolean;
+        village?: string;
+    }>;
+    total_visits: number;
+    velocity: number;
+    trend_status: string;
+}
+
+export const submitScreeningVisit = async (visit: ScreeningVisitInput): Promise<ScreeningVisitResponse> => {
+    const res = await apiClient.post<ScreeningVisitResponse>('/visit', visit);
+    return res.data;
+};
+
+export const getPatientTimeline = async (patientId: string): Promise<PatientTimelineResponse> => {
+    const res = await apiClient.get<PatientTimelineResponse>(`/patients/${patientId}/timeline`);
+    return res.data;
+};
+
 export const predictRisk = async (data: PredictionInput): Promise<PredictionResponse> => {
     const predictionRes = await apiClient.post<{ risk_score: number; risk_level: string }>('/predict', data);
 

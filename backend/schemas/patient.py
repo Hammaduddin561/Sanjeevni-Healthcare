@@ -157,3 +157,58 @@ class FeedbackRequest(BaseModel):
     clinician_notes: str = ""
     agreed: bool
 
+
+class VisitCreateRequest(PatientRequest):
+    visit_id: Optional[str] = Field(None, description="Idempotent client visit ID for offline sync")
+    patient_id: Optional[str] = Field(None, description="Patient identifier")
+    worker_id: Optional[str] = Field(None, description="Health worker identifier/email")
+    worker_name: Optional[str] = None
+    notes: Optional[str] = None
+
+
+class VisitResponse(BaseModel):
+    visit_id: str
+    patient_id: str
+    patient_name: Optional[str] = None
+    worker_id: str
+    worker_name: Optional[str] = None
+    village: Optional[str] = None
+    timestamp: str
+
+    # Traffic light & Triage
+    traffic_light: str  # "GREEN", "YELLOW", "RED"
+    ml_triage: str
+    ml_risk_score: float
+    safety_escalated: bool
+    escalation_reasons: List[str]
+    action_headline: str
+    action_details: str
+
+    # Vitals & Screeners summary
+    bmi: float
+    blood_glucose_level: float
+    HbA1c_level: float
+    systolic_bp: Optional[float] = None
+    diastolic_bp: Optional[float] = None
+    hypertension_flag: int = 0
+    phq9_total: int = 0
+    phq9_severity: str = "None-Minimal"
+    phq9_crisis_flag: bool = False
+    emergency_helpline_required: bool = False
+    helplines: List[Dict[str, str]] = []
+
+    # Explainability
+    explanations: List[Dict[str, Any]] = []
+    summary_en: Optional[str] = None
+    summary_hi: Optional[str] = None
+
+
+class PatientTimelineResponse(BaseModel):
+    patient_id: str
+    patient_name: Optional[str] = None
+    visits: List[Dict[str, Any]]
+    total_visits: int
+    velocity: float
+    trend_status: str
+
+

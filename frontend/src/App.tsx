@@ -10,6 +10,7 @@ import GlobalBackground from './components/GlobalBackground';
 import MentalHealthScreening from './components/MentalHealthScreening';
 import WellnessChatbot from './components/WellnessChatbot';
 import ModelCard from './components/ModelCard';
+import GuidedVisitFlow from './components/GuidedVisitFlow';
 import { type PredictionResponse, type PredictionInput } from './api/client';
 import { Stethoscope, Brain } from 'lucide-react';
 import DigitalTwinModel from './components/DigitalTwinModel';
@@ -25,7 +26,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
-  const [view, setView] = useState<'dashboard' | 'logs' | 'mental-health' | 'wellness-chat' | 'model-card'>('dashboard');
+  const [view, setView] = useState<'screening' | 'dashboard' | 'logs' | 'mental-health' | 'wellness-chat' | 'model-card'>('screening');
   const [showIntro, setShowIntro] = useState(false);
   const [predictionData, setPredictionData] = useState<PredictionResponse | null>(null);
   const [patientData, setPatientData] = useState<PredictionInput | null>(null);
@@ -105,9 +106,16 @@ function App() {
             onLogout={handleLogout}
             user={user}
             currentView={view}
-            onNavigate={(v) => setView(v as 'dashboard' | 'logs' | 'mental-health' | 'wellness-chat' | 'model-card')}
+            onNavigate={(v) => setView(v as 'screening' | 'dashboard' | 'logs' | 'mental-health' | 'wellness-chat' | 'model-card')}
           >
-            {view === 'logs' ? (
+            {view === 'screening' ? (
+              <div className="max-w-5xl mx-auto py-6 px-4">
+                <GuidedVisitFlow
+                  workerName={user?.name || "ASHA Health Worker"}
+                  workerEmail={user?.email || "worker@sanjeevni.org"}
+                />
+              </div>
+            ) : view === 'logs' ? (
               <div className="max-w-5xl mx-auto">
                 <AuditLog />
               </div>

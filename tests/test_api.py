@@ -73,6 +73,70 @@ def test_model_card_endpoint():
     assert "roc_auc" in data["metrics"]["performance"]
     assert "gender_audit" in data["fairness"]
 
+def test_visit_screening_endpoint():
+    visit_payload = {
+        "gender": "Female",
+        "age": 35,
+        "hypertension": 0,
+        "heart_disease": 0,
+        "smoking_history": "never",
+        "bmi": 22.4,
+        "HbA1c_level": 5.2,
+        "blood_glucose_level": 92.0,
+        "systolic_bp": 118.0,
+        "diastolic_bp": 76.0,
+        "phq9_scores": [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "patient_name": "Meera Devi",
+        "patient_id": "P_RAMPUR_01",
+        "village": "Rampur"
+    }
+    response = client.post("/visit", json=visit_payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["traffic_light"] in ["GREEN", "YELLOW", "RED"]
+    assert data["patient_id"] == "P_RAMPUR_01"
+    assert "action_headline" in data
+    assert "explanations" in data
+    assert "summary_en" in data
+    assert data["phq9_total"] == 0
+
+def test_visit_screening_emergency_escalation():
+    # Young patient with low diabetes risk (ML predicts GREEN), but crisis BP and self-harm positive
+    crisis_payload = {
+        "gender": "Male",
+        "age": 25,
+        "hypertension": 0,
+        "heart_disease": 0,
+        "smoking_history": "never",
+        "bmi": 21.5,
+        "HbA1c_level": 5.0,
+        "blood_glucose_level": 92.0,
+        "systolic_bp": 185.0,
+        "diastolic_bp": 122.0,
+        "phq9_scores": [0, 0, 0, 0, 0, 0, 0, 0, 2],
+        "patient_name": "Rajesh Kumar",
+        "patient_id": "P_RAMPUR_02",
+        "village": "Rampur"
+    }
+    response = client.post("/visit", json=crisis_payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["traffic_light"] == "RED"
+    assert data["ml_triage"] == "GREEN"
+    assert data["safety_escalated"] is True
+    assert data["phq9_crisis_flag"] is True
+    assert data["emergency_helpline_required"] is True
+    assert len(data["helplines"]) > 0
+
+def test_patient_timeline_endpoint():
+    response = client.get("/patients/P_RAMPUR_01/timeline")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["patient_id"] == "P_RAMPUR_01"
+    assert "visits" in data
+    assert data["total_visits"] >= 1
+    assert "trend_status" in data
+
 def test_validation_error():
     # Missing required field 'age'
     invalid_data = SAMPLE_PATIENT.copy()
