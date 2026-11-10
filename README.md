@@ -1,191 +1,112 @@
 # 🌿 Sanjeevni Healthcarer
-### AI-Powered Health Platform for Holistic Patient Care
+### Safe, Explainable AI Decision-Support Platform for Rural Primary Care
 
-> **DSH Hacks V2 — AI × Healthcare Track**  
-> An intelligent health companion that predicts clinical risk, screens mental health, and guides wellness — all in one unified platform.
-
----
-
-## 🩺 What is Sanjeevni?
-
-**Sanjeevni Healthcarer** is a full-stack AI health platform designed to transform fragmented patient data into actionable clinical intelligence. Built for clinicians and patients alike, it combines cutting-edge machine learning with intuitive design to deliver:
-
-- 🔬 **Multi-model Diabetes & Cardiac Risk Prediction** using an ensemble of XGBoost, CatBoost, LightGBM + BioMistral-7B LLM
-- 🧠 **Mental Health Screening** with clinically validated PHQ-9 questionnaire and crisis support
-- 💬 **AI Wellness Guide** — a smart chatbot for diabetes, nutrition, exercise, and lifestyle queries
-- 📊 **Explainable AI** — SHAP values, counterfactual analysis, and digital twin simulation
-- 📄 **FHIR-compatible PDF Reports** for clinical documentation
-- 🏥 **Cohort Analytics Engine** — population-level health trend analysis
+> **Research Prototype Disclaimer**: Sanjeevni Healthcarer is an investigational clinical research prototype designed to support Community Health Workers (e.g. ASHA workers) and Primary Health Centre (PHC) clinicians with standardized screening and risk stratification. It is **not** an automated diagnostic system, does not prescribe medication, and must never replace clinical assessment by a licensed physician.
 
 ---
 
-## ✨ Key Features
+## 🎯 Product Definition & Core Clinical Story
 
-| Feature | Description |
-|---|---|
-| 🎯 Risk Prediction | Ensemble ML (XGBoost + CatBoost + LightGBM) + BioMistral-7B NLP |
-| 🧠 Mental Health | PHQ-9 depression screening with Indian crisis helplines |
-| 💬 Wellness Chatbot | Rule-based health Q&A — diabetes, BMI, nutrition, posture |
-| 📈 Digital Twin | 3D patient model with what-if simulation |
-| 🔍 SHAP Explanations | Feature importance & counterfactual reasoning |
-| 📄 PDF Reports | FHIR-compatible clinical summary generation |
-| 🏥 Cohort Engine | Population risk analytics on 100K+ records |
-| 🔒 Audit Logs | Admin-only compliance and access tracking |
+In rural and peri-urban India and similar resource-constrained regions, community health workers conduct home visits with limited diagnostic infrastructure. **Sanjeevni Healthcarer** enables a **5-Minute Guided Visit Flow**:
 
----
-
-## 🚀 Tech Stack
-
-**Backend:**
-- FastAPI (Python 3.11+)
-- Scikit-learn, XGBoost, CatBoost, LightGBM, SHAP
-- BioMistral-7B (GGUF, local inference via GPT4All)
-- FPDF2 for PDF generation
-- Pandas, NumPy for data processing
-
-**Frontend:**
-- React 18 + TypeScript
-- Vite 8
-- Tailwind CSS + custom glassmorphism design system
-- Framer Motion (animations)
-- Three.js (3D Digital Twin)
-- Recharts (data visualization)
-- Howler.js (ambient UI audio)
+1. **Vitals & Metabolic Screening**: Age, Gender, BMI (computed from Height/Weight), Fasting Blood Glucose, and HbA1c.
+2. **Blood Pressure & Hypertension Check**: Systolic and Diastolic blood pressure assessment.
+3. **PHQ-9 Depression Screener**: Clinically validated 9-item Patient Health Questionnaire.
+4. **Deterministic Clinical Safety Layer**: Immediate escalation to **RED (Emergency Doctor Referral)** on critical flags (e.g., Blood Glucose > 300 mg/dL, Hypertensive crisis BP > 180/120, or positive PHQ-9 Item 9).
+5. **Actionable Community Triaging**:
+   - 🟢 **GREEN**: Home health & lifestyle guidance (diet, exercise, sleep hygiene).
+   - 🟡 **YELLOW**: Non-emergency referral to Primary Health Centre within 1–2 weeks.
+   - 🔴 **RED**: Immediate referral to doctor / emergency healthcare facility.
 
 ---
 
-## ⚙️ Local Setup
+## 👥 User Roles & Access Control
 
-### Prerequisites
+- 👩‍⚕️ **Community Health Worker (ASHA)**: Conducts 5-minute guided visits, collects vitals and PHQ-9, views plain-language explanation and triage action. Works online and offline.
+- 🩺 **PHC Medical Officer (Doctor)**: Reviews escalated (RED / YELLOW) patient summaries, monitors village-level risk cohorts, generates FHIR R4 clinical summaries.
+- 🛡️ **System Administrator**: Compliance audits, user management, and read-only structured event logs (zero patient-identifiable data in logs).
+
+---
+
+## 🏗️ Architecture & Technical Stack
+
+- **Backend**: FastAPI (Python 3.11+), SQLite / SQLAlchemy, Pydantic V2 input validation with physiological clinical ranges.
+- **Machine Learning**: Calibrated XGBoost classifier trained on validated diabetes datasets (`data/diabetes_dataset.csv`).
+- **Explainability**: SHAP TreeExplainer for sub-100ms explanations, plain-language English & Hindi risk driver translations, and actionable counterfactual recommendations (DiCE).
+- **Frontend**: React 19, TypeScript, Vite 8, Tailwind CSS, Framer Motion, PWA offline sync (IndexedDB).
+- **Interoperability**: HL7 FHIR R4 standard Bundles (Patient, Observation, RiskAssessment).
+
+---
+
+## ⚙️ Quickstart & Local Setup
+
+### 1. Prerequisites
 - Python 3.11+
 - Node.js 20+
-- Git
+- Linux / macOS / Windows WSL
 
-### Backend Setup
-
+### 2. Backend Setup
 ```bash
-cd clinical-risk-predictor
+# Clone or navigate to the repository
+cd sanjeevni-healthcarer
 
-# Create and activate virtual environment
-~/.local/bin/virtualenv backend/venv
+# Activate virtual environment
 source backend/venv/bin/activate
 
 # Install dependencies
 pip install -r backend/requirements.txt
 
-# Start the API server
-uvicorn backend.api:app --port 8001 --host 0.0.0.0 --reload
+# Copy environment file
+cp backend/.env.example backend/.env
+
+# Seed the database with demo users (ASHA, Doctor, Admin)
+python scripts/seed_users.py
+
+# Start FastAPI backend server
+python -m uvicorn backend.api:app --port 8001 --host 0.0.0.0 --reload
 ```
+API runs at: `http://localhost:8001`  
+Interactive Swagger Documentation: `http://localhost:8001/docs`
 
-API will be live at: `http://localhost:8001`  
-Swagger docs: `http://localhost:8001/docs`
-
-### Frontend Setup
-
+### 3. Frontend Setup
 ```bash
 cd frontend
 
 # Install dependencies
 npm install --legacy-peer-deps
 
-# Copy environment config
-cp .env.example .env
-# Edit .env: VITE_API_URL=http://localhost:8001
-
-# Start dev server
+# Start Vite dev server
 npm run dev
 ```
-
-Frontend live at: `http://localhost:5173`
+Application interface runs at: `http://localhost:5173`
 
 ---
 
-## 🧪 Verify Installation
+## 🔑 Demo Credentials
+
+| Role | Email | Password | Primary Workflow |
+|---|---|---|---|
+| **ASHA Health Worker** | `worker@sanjeevni.org` | `Password@123` | Guided 5-min visit screening |
+| **PHC Doctor** | `doctor@phc.org` | `Password@123` | Triage dashboard & summaries |
+| **Legacy Doctor** | `doc@hospital.com` | `password123` | Clinician dashboard |
+| **Administrator** | `admin@hospital.org` | `password123` | Audit logs & compliance |
+
+---
+
+## 🧪 Testing
 
 ```bash
-# From project root (with venv active)
-python backend/verify_features.py
-# Expected: ✅ ALL TESTS PASSED
+# Run backend test suite
+PYTHONPATH=. ./backend/venv/bin/pytest tests/
+
+# Run frontend build & lint
+cd frontend && npm run build
 ```
 
 ---
 
-## 🌐 Application Tabs
+## 🛡️ Ethics, Safety & Limitations
 
-| Tab | Description |
-|---|---|
-| **Dashboard** | Main clinical risk assessment with patient vitals input |
-| **Mental Health** | PHQ-9 screening, severity scoring, helpline cards |
-| **Wellness Guide** | Health Q&A chatbot for lifestyle & disease queries |
-| **Audit Logs** | Admin-only system access and event log |
-
----
-
-## 📡 API Endpoints
-
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/predict` | Run risk prediction on patient data |
-| POST | `/explain` | Get SHAP explanation for a prediction |
-| POST | `/simulate` | Digital twin what-if simulation |
-| POST | `/report` | Generate FHIR PDF report |
-| GET | `/cohort/stats` | Cohort-level population analytics |
-| GET | `/health` | System health check |
-
----
-
-## 🔑 Demo Login
-
-Any email/password combination works in the demo mode.  
-Admin features (Audit Logs): use `admin@hospital.org`
-
----
-
-## 🏆 Built For
-
-**DSH Hacks V2** — Theme: AI × Healthcare  
-Deadline: November 14, 2026
-
-Sanjeevni Healthcarer addresses the DSH Hacks challenge by:
-1. Using AI to reduce diagnostic time for clinicians
-2. Making mental health screening accessible and de-stigmatized
-3. Providing explainable, transparent AI decisions (not black-box)
-4. Targeting underserved communities with India-specific health helplines
-
----
-
-## 📁 Project Structure
-
-```
-sanjeevni-healthcarer/
-├── backend/
-│   ├── api.py                  # FastAPI app & routes
-│   ├── models/
-│   │   ├── risk_engine.py      # Ensemble ML engine
-│   │   ├── clinical_llm.py     # BioMistral-7B interface
-│   │   ├── pdf_service.py      # FHIR PDF generator
-│   │   └── risk_pipeline_v1.joblib  # Trained model weights
-│   ├── routes/                 # cohort, fhir, feedback
-│   └── schemas/                # Pydantic request/response models
-├── frontend/
-│   └── src/
-│       ├── components/
-│       │   ├── PatientInputs.tsx       # Risk input form
-│       │   ├── ClinicianDashboard.tsx  # Prediction results
-│       │   ├── MentalHealthScreening.tsx  # PHQ-9 screening ✨
-│       │   ├── WellnessChatbot.tsx     # Health Q&A bot ✨
-│       │   ├── DigitalTwinModel.tsx    # 3D twin viewer
-│       │   └── layout/AppShell.tsx    # Nav + layout
-│       └── api/client.ts       # Backend API client
-└── README.md
-```
-
----
-
-## ⚠️ Disclaimer
-
-This platform is intended for research and educational purposes. Clinical risk predictions should be validated by qualified medical professionals. The PHQ-9 screening is not a substitute for professional mental health diagnosis.
-
----
-
-*Sanjeevni — Sanskrit for "life-giving" 🌿*
+- **No Medical Substitution**: Recommendations are advisory. All high-risk cases must be evaluated by a certified medical practitioner.
+- **Privacy First**: Structured logs and audit records strip all direct patient identifiers (`patient_name`, `email`, phone).
+- **Fairness & Audit**: Tested for algorithmic performance consistency across demographic subgroups.

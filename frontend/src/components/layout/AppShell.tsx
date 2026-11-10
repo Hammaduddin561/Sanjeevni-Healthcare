@@ -4,7 +4,7 @@ import { Howl } from 'howler';
 
 interface AppShellProps {
     children: ReactNode;
-    user?: { email: string; name: string; specialty?: string } | null;
+    user?: { email: string; name: string; role?: string; specialty?: string } | null;
     onLogout?: () => void;
     currentView?: 'dashboard' | 'logs' | 'mental-health' | 'wellness-chat';
     onNavigate?: (view: 'dashboard' | 'logs' | 'mental-health' | 'wellness-chat') => void;
@@ -77,7 +77,7 @@ const AppShell: React.FC<AppShellProps> = ({ children, user, onLogout, currentVi
                             <MessageCircle size={14} />
                             Wellness Guide
                         </button>
-                        {user?.email === 'admin@hospital.org' && (
+                        {(user?.role === 'admin' || user?.email === 'admin@hospital.org') && (
                             <button
                                 onClick={() => { playClick(); onNavigate?.('logs'); }}
                                 className={`px-4 py-1.5 rounded-full transition-all flex items-center gap-2 ${currentView === 'logs' ? 'bg-white dark:bg-slate-700 text-clinical-teal dark:text-teal-400 shadow-sm' : 'hover:bg-white/50 dark:hover:bg-slate-700/50'}`}

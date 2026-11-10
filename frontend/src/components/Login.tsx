@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Mail, Lock, Eye, EyeOff, User, ArrowRight, ShieldCheck } from 'lucide-react';
-
+import { Mail, Lock, Eye, EyeOff, User, ArrowRight, ShieldCheck, HeartPulse, Stethoscope } from 'lucide-react';
+import { login } from '../api/client';
 
 interface LoginProps {
-  onLoginSuccess: (user: { email: string; name: string }) => void;
+  onLoginSuccess: (user: { email: string; name: string; role?: string; specialty?: string }) => void;
   onSwitchToSignup: () => void;
 }
 
@@ -23,38 +23,46 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToSignup }) => {
     setError('');
   };
 
+  const setDemoAccount = (email: string, pass: string, roleName: string) => {
+    setFormData({
+      name: roleName,
+      email,
+      password: pass
+    });
+    setError('');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
-    // validation
     if (!formData.email || !formData.password) {
-      setError("Please fill in all fields");
+      setError("Please fill in email and password");
       setLoading(false);
       return;
     }
 
     try {
-      // Mock Login Flow
-      setTimeout(() => {
-        const user = {
-          email: formData.email,
-          name: formData.name || "Clinician", // Use entered name or default
-          token: "mock-jwt-token"
-        };
+      const authRes = await login(formData.email, formData.password);
+      const user = {
+        email: authRes.user_email,
+        name: authRes.user_name || formData.name || "Clinician",
+        role: authRes.role || "worker",
+        specialty: authRes.user_specialty
+      };
 
-        localStorage.setItem('authToken', user.token);
-        localStorage.setItem('user', JSON.stringify(user));
-        onLoginSuccess(user);
-      }, 800);
-
+      localStorage.setItem('authToken', authRes.access_token);
+      localStorage.setItem('sanjeevniUser', JSON.stringify(user));
+      onLoginSuccess(user);
     } catch (err: any) {
-      setError('Invalid credentials');
+      const msg = err.response?.data?.detail || "Invalid email or password";
+      setError(typeof msg === 'string' ? msg : JSON.stringify(msg));
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-clinical-bg dark:bg-clinical-bg-dark font-sans">
@@ -128,7 +136,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToSignup }) => {
                   value={formData.email}
                   onChange={handleInputChange}
                   className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-clinical-teal/50 focus:border-clinical-teal transition-all"
-                  placeholder="doctor@hospital.org"
+                  placeholder="doc@hospital.com"
                 />
               </div>
             </div>
@@ -145,7 +153,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToSignup }) => {
                   value={formData.password}
                   onChange={handleInputChange}
                   className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pl-10 pr-10 text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-clinical-teal/50 focus:border-clinical-teal transition-all"
-                  placeholder="••••••••"
+                  placeholder="Enter password"
                 />
                 <button
                   type="button"
@@ -153,6 +161,34 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToSignup }) => {
                   className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Demo Roles */}
+            <div className="pt-1">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Demo Role Quick Select</p>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDemoAccount('worker@sanjeevni.org', 'Password@123', 'Sunita Devi (ASHA)')}
+                  className="px-2 py-1.5 text-xs font-medium rounded-lg border border-purple-200 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 hover:bg-purple-100 transition-colors flex items-center justify-center gap-1"
+                >
+                  <HeartPulse size={12} /> ASHA Worker
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDemoAccount('doctor@phc.org', 'Password@123', 'Dr. Ramesh Gupta')}
+                  className="px-2 py-1.5 text-xs font-medium rounded-lg border border-teal-200 dark:border-teal-800 bg-teal-50/50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300 hover:bg-teal-100 transition-colors flex items-center justify-center gap-1"
+                >
+                  <Stethoscope size={12} /> PHC Doctor
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDemoAccount('admin@hospital.org', 'password123', 'System Administrator')}
+                  className="px-2 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 transition-colors flex items-center justify-center gap-1"
+                >
+                  <ShieldCheck size={12} /> Admin
                 </button>
               </div>
             </div>

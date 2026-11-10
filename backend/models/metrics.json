@@ -1,0 +1,106 @@
+{
+  "model_name": "Sanjeevni Tabular XGBoost Ensemble",
+  "random_seed": 42,
+  "dataset": {
+    "total_records": 100992,
+    "train_samples": 80793,
+    "test_samples": 20199,
+    "positive_prevalence_pct": 8.5
+  },
+  "performance": {
+    "roc_auc": 0.9778,
+    "accuracy": 0.9015,
+    "precision": 0.4602,
+    "recall_sensitivity": 0.9161,
+    "specificity": 0.9002,
+    "f1_score": 0.6127,
+    "brier_score_uncalibrated": 0.0598,
+    "brier_score_calibrated": 0.0258,
+    "expected_calibration_error_uncalibrated": 0.0961,
+    "expected_calibration_error_calibrated": 0.0232
+  },
+  "confusion_matrix": {
+    "true_negatives": 16637,
+    "false_positives": 1845,
+    "false_negatives": 144,
+    "true_positives": 1573
+  },
+  "calibration_curve": [
+    {
+      "mean_predicted_value": 0.009339030223535372,
+      "fraction_of_positives": 0.0008764882039295887
+    },
+    {
+      "mean_predicted_value": 0.14279481392094795,
+      "fraction_of_positives": 0.015151515151515152
+    },
+    {
+      "mean_predicted_value": 0.2462433451362203,
+      "fraction_of_positives": 0.04354136429608128
+    },
+    {
+      "mean_predicted_value": 0.35140569838066826,
+      "fraction_of_positives": 0.06401384083044982
+    },
+    {
+      "mean_predicted_value": 0.45101954270361494,
+      "fraction_of_positives": 0.06847360912981455
+    },
+    {
+      "mean_predicted_value": 0.5512040925060847,
+      "fraction_of_positives": 0.10688140556368961
+    },
+    {
+      "mean_predicted_value": 0.6495020851175836,
+      "fraction_of_positives": 0.13617021276595745
+    },
+    {
+      "mean_predicted_value": 0.7469799279702777,
+      "fraction_of_positives": 0.23151750972762647
+    },
+    {
+      "mean_predicted_value": 0.843980934173783,
+      "fraction_of_positives": 0.3312883435582822
+    },
+    {
+      "mean_predicted_value": 0.9974537170734726,
+      "fraction_of_positives": 0.9890756302521009
+    }
+  ],
+  "features": {
+    "engineered_features": [
+      "BMI_Age_Interaction",
+      "Glucose_HbA1c_Interaction",
+      "Age_Category",
+      "BMI_Category"
+    ],
+    "all_features": [
+      "age",
+      "hypertension",
+      "heart_disease",
+      "bmi",
+      "HbA1c_level",
+      "blood_glucose_level",
+      "BMI_Age_Interaction",
+      "Glucose_HbA1c_Interaction",
+      "gender_Female",
+      "gender_Male",
+      "gender_Other",
+      "smoking_history_No Info",
+      "smoking_history_current",
+      "smoking_history_ever",
+      "smoking_history_former",
+      "smoking_history_never",
+      "smoking_history_not current",
+      "Age_Category_Elderly",
+      "Age_Category_Middle",
+      "Age_Category_Senior",
+      "Age_Category_Young",
+      "Age_Category_missing",
+      "BMI_Category_Normal",
+      "BMI_Category_Obese",
+      "BMI_Category_Overweight",
+      "BMI_Category_Underweight"
+    ]
+  }
+}

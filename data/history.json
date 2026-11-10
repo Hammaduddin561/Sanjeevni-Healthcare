@@ -1,0 +1,38 @@
+[
+    {
+        "id": 1,
+        "timestamp": "2026-11-10T09:40:45.916833",
+        "patient_data": {
+            "gender": "Male",
+            "age": 45.0,
+            "hypertension": 0,
+            "heart_disease": 1,
+            "smoking_history": "former",
+            "bmi": 28.5,
+            "HbA1c_level": 6.2,
+            "blood_glucose_level": 140.0
+        },
+        "risk_assessment": {
+            "score": 0.6383092403411865,
+            "level": "Moderate"
+        }
+    },
+    {
+        "id": 2,
+        "timestamp": "2026-11-10T09:48:36.808308",
+        "patient_data": {
+            "gender": "Male",
+            "age": 45.0,
+            "hypertension": 0,
+            "heart_disease": 1,
+            "smoking_history": "former",
+            "bmi": 28.5,
+            "HbA1c_level": 6.2,
+            "blood_glucose_level": 140.0
+        },
+        "risk_assessment": {
+            "score": 0.6383092403411865,
+            "level": "Moderate"
+        }
+    }
+]

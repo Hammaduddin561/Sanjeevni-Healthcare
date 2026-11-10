@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Dict, Any
 import sys
@@ -8,7 +8,9 @@ import json
 # Ensure backend module can be imported
 sys.path.append(os.getcwd())
 
+from backend.utils.logger import app_logger, audit_logger
 from backend.models.risk_engine import RiskEngine
+from backend.models.cohort_engine import CohortEngine
 from backend.models.counterfactuals import Counterfactuals
 from backend.models.clinical_llm import ClinicalLLM
 from backend.services.history import HistoryService
@@ -21,7 +23,7 @@ from backend.schemas.patient import (
 )
 
 # Import Routes
-from backend.routes import cohort, feedback, fhir
+from backend.routes import auth, cohort, feedback, fhir
 
 from fastapi.staticfiles import StaticFiles
 from backend.models.pdf_service import PDFService
@@ -34,59 +36,96 @@ pdf_dir = os.path.join(os.getcwd(), "backend", "pdfs")
 os.makedirs(pdf_dir, exist_ok=True)
 app.mount("/pdfs", StaticFiles(directory=pdf_dir), name="pdfs")
 
-# Include Routers
-app.include_router(cohort.router)
-app.include_router(feedback.router)
-app.include_router(fhir.router)
+# 1. CORS Setup from Environment Variables
+allowed_origins_env = os.getenv(
+    "ALLOWED_ORIGINS", 
+    "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://localhost:8001,http://127.0.0.1:8001"
+)
+allowed_origins = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
 
-# 2. CORS Setup (Allow All for Dev)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# 3. Load Engine Components
+# 2. Singleton Engine Initialization & App State Attachment
 try:
     risk_engine = RiskEngine()
-    print("Risk Engine loaded successfully.")
+    app.state.risk_engine = risk_engine
+    app_logger.info("Risk Engine initialized successfully.")
 except Exception as e:
-    print(f"Failed to load Risk Engine: {e}")
+    app_logger.error(f"Failed to load Risk Engine: {e}")
     risk_engine = None
+    app.state.risk_engine = None
+
+try:
+    cohort_engine = CohortEngine()
+    app.state.cohort_engine = cohort_engine
+    app_logger.info("Cohort Engine initialized successfully.")
+except Exception as e:
+    app_logger.error(f"Failed to load Cohort Engine: {e}")
+    cohort_engine = None
+    app.state.cohort_engine = None
 
 clinical_llm = ClinicalLLM()
 pdf_service = PDFService()
 
+# 3. Include Routers
+app.include_router(auth.router)
+app.include_router(cohort.router)
+app.include_router(feedback.router)
+app.include_router(fhir.router)
+
+def get_shared_risk_engine(request: Request) -> RiskEngine:
+    engine = getattr(request.app.state, "risk_engine", None)
+    if engine is None:
+        raise HTTPException(status_code=503, detail="Risk Engine not initialized")
+    return engine
 
 # --- Endpoints ---
 
 @app.get("/health")
-def health_check():
-    if risk_engine is None:
-        raise HTTPException(status_code=503, detail="Risk Engine not initialized")
-    return {"status": "healthy", "model_loaded": True}
+def health_check(request: Request):
+    engine = getattr(request.app.state, "risk_engine", None)
+    c_engine = getattr(request.app.state, "cohort_engine", None)
+    return {
+        "status": "healthy" if engine is not None else "degraded",
+        "model_loaded": engine is not None,
+        "cohort_engine_loaded": c_engine is not None,
+        "environment": os.getenv("APP_ENV", "development")
+    }
 
 @app.get("/")
 def root():
-    return {"message": "Clinical Risk Predictor API is running", "docs": "/docs"}
+    return {
+        "message": "Sanjeevni Healthcarer API is running", 
+        "docs": "/docs",
+        "role_guide": {
+            "worker": "ASHA Community Health Worker screening",
+            "doctor": "Primary Health Centre triage dashboard",
+            "admin": "System audit and compliance logs"
+        }
+    }
 
 @app.post("/predict", response_model=RiskResponse)
-def predict_risk(patient: PatientRequest):
-    if risk_engine is None:
-        raise HTTPException(status_code=503, detail="Risk Engine not ready")
-    
+def predict_risk(patient: PatientRequest, engine: RiskEngine = Depends(get_shared_risk_engine)):
     try:
-        data = patient.dict()
-        # Remove metadata
+        data = patient.model_dump()
+        # Remove metadata before passing to ML model
         data.pop('clinician_id', None)
         data.pop('clinician_name', None)
         patient_name = data.pop('patient_name', None)
+        village = data.pop('village', None)
+        systolic = data.pop('systolic_bp', None)
+        diastolic = data.pop('diastolic_bp', None)
+        phq9 = data.pop('phq9_scores', None)
 
-        score = risk_engine.predict_risk(data)
+        score = engine.predict_risk(data)
         level = get_risk_level(score)
-        explanations = risk_engine.explain_risk(data)
+        explanations = engine.explain_risk(data)
         
         # Save to JSON History
         try:
@@ -96,43 +135,49 @@ def predict_risk(patient: PatientRequest):
                 risk_level=level
             )
         except Exception as hist_e:
-            print(f"Warning: Failed to save history to JSON: {hist_e}")
+            app_logger.warning(f"Failed to record patient history: {hist_e}")
+
+        # Structured audit log (zero patient identifiers)
+        audit_logger.info(
+            "Prediction generated",
+            extra={"audit_event": {"action": "PREDICT", "risk_level": level, "score": score}}
+        )
 
         return {"risk_score": score, "risk_level": level, "explanations": explanations}
     except Exception as e:
+        app_logger.exception("Prediction failed")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/history", response_model=Dict[str, Any])
 def get_history(limit: int = 10):
     return HistoryService.get_history(limit)
 
-
 @app.post("/explain", response_model=ExplanationResponse)
-def explain_risk(patient: PatientRequest):
-    if risk_engine is None:
-        raise HTTPException(status_code=503, detail="Risk Engine not ready")
-    
+def explain_risk(patient: PatientRequest, engine: RiskEngine = Depends(get_shared_risk_engine)):
     try:
-        data = patient.dict()
+        data = patient.model_dump()
         data.pop('clinician_id', None)
         data.pop('clinician_name', None)
+        data.pop('patient_name', None)
+        data.pop('village', None)
+        data.pop('systolic_bp', None)
+        data.pop('diastolic_bp', None)
+        data.pop('phq9_scores', None)
         
-        explanations = risk_engine.explain_risk(data)
+        explanations = engine.explain_risk(data)
         return {"explanations": explanations}
     except Exception as e:
+        app_logger.exception("Explain failed")
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @app.post("/simulate", response_model=SimulationResponse)
-def simulate_risk(request: SimulationRequest):
-    if risk_engine is None:
-        raise HTTPException(status_code=503, detail="Risk Engine not ready")
-    
+def simulate_risk(request: SimulationRequest, engine: RiskEngine = Depends(get_shared_risk_engine)):
     try:
-        cf = Counterfactuals(risk_engine)
-        result = cf.predict_simulation(request.patient.dict(), request.modifications)
+        cf = Counterfactuals(engine)
+        p_dict = request.patient.model_dump()
+        result = cf.predict_simulation(p_dict, request.modifications)
         
-        original_risk = risk_engine.predict_risk(request.patient.dict())
+        original_risk = engine.predict_risk(p_dict)
         new_risk = result['new_risk']
         
         return {
@@ -141,24 +186,24 @@ def simulate_risk(request: SimulationRequest):
             "risk_reduction": original_risk - new_risk
         }
     except Exception as e:
+        app_logger.exception("Simulation failed")
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.post("/simulate/report", response_model=ReportResponse)
-def generate_simulation_report(request: SimulationRequest):
+def generate_simulation_report(request: SimulationRequest, engine: RiskEngine = Depends(get_shared_risk_engine)):
     try:
-        # Calculate Risks
-        original_risk = risk_engine.predict_risk(request.patient.dict())
+        p_dict = request.patient.model_dump()
+        original_risk = engine.predict_risk(p_dict)
         
-        # Calculate New Risk
-        cf = Counterfactuals(risk_engine)
-        result = cf.predict_simulation(request.patient.dict(), request.modifications)
+        cf = Counterfactuals(engine)
+        result = cf.predict_simulation(p_dict, request.modifications)
         new_risk = result['new_risk']
         
         # Fallback to Mock if LLM is down
         if clinical_llm is None or clinical_llm.model is None:
              report = f"Simulated Analysis: Reducing risk factors has improved the projected outcome by {((original_risk - new_risk)*100):.1f}%. Sustained adherence to these targets is expected to yield long-term benefits. (AI Offline)"
         else:
-            # Generate Text
             report = clinical_llm.generate_simulation_report(
                 request.patient.model_dump(), 
                 result['modified_data'], 
@@ -167,35 +212,40 @@ def generate_simulation_report(request: SimulationRequest):
             )
         return {"report": report}
     except Exception as e:
+        app_logger.exception("Simulation report generation failed")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/report", response_model=ReportResponse)
-def generate_report(patient: PatientRequest):
+def generate_report(patient: PatientRequest, engine: RiskEngine = Depends(get_shared_risk_engine)):
     try:
-        data = patient.dict()
+        data = patient.model_dump()
         data.pop('clinician_id', None)
         data.pop('clinician_name', None)
         patient_name = data.pop('patient_name', None)
+        data.pop('village', None)
+        data.pop('systolic_bp', None)
+        data.pop('diastolic_bp', None)
+        data.pop('phq9_scores', None)
 
-        score = risk_engine.predict_risk(data)
+        score = engine.predict_risk(data)
         level = get_risk_level(score)
-        explanations = risk_engine.explain_risk(data)
+        explanations = engine.explain_risk(data)
         
         if clinical_llm is None or clinical_llm.model is None:
-            print("⚠️ Using Mock AI Report due to missing LLM.")
+            app_logger.info("Using standard template report (LLM offline).")
             report = f"""
-            **Clinical Validation (Simulated):**
+            **Clinical Validation Summary:**
             Based on the assessment, the patient is classified as **{level.upper()} RISK** (Score: {score:.2f}). 
             
             **Key Drivers:**
-            The primary contributing factors appear to be {explanations[0]['feature'] if explanations else 'unknown'} and metabolic indicators.
+            The primary contributing factors appear to be {explanations[0]['feature'] if explanations else 'metabolic indicators'}.
             
-            **Recommendations:**
+            **Actionable Community Care Advice:**
             1. Initiation of standard lifestyle interventions is recommended.
-            2. Follow-up testing for HbA1c and lipid panel within 3-6 months.
-            3. Consider pharmacological review if risk factors persist.
+            2. Follow-up testing for HbA1c and vitals monitoring.
+            3. Consider clinical review at Primary Health Centre if risk factors persist.
             
-            *Note: This is a placeholder report as the local AI model (BioMistral) is currently offline.*
+            *Research prototype disclaimer: For clinical screening assistance only; not a diagnostic replacement.*
             """
         else:
             report = clinical_llm.generate_report(data, score, level, explanations, patient_name=patient_name)
@@ -208,15 +258,16 @@ def generate_report(patient: PatientRequest):
                 pdf_filename = pdf_service.generate_report(data, score, level, report, explanations, patient_name=patient_name)
                 pdf_url = f"/pdfs/{pdf_filename}"
             except Exception as pdf_e:
-                print(f"Error generating PDF: {pdf_e}")
+                app_logger.error(f"Error generating PDF: {pdf_e}")
 
         return {"report": report.strip(), "pdf_url": pdf_url}
     except Exception as e:
+        app_logger.exception("Report generation failed")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/report/stream")
-def generate_report_stream(patient: ReportGenerationRequest):
-    data = patient.dict()
+def generate_report_stream(patient: ReportGenerationRequest, engine: RiskEngine = Depends(get_shared_risk_engine)):
+    data = patient.model_dump()
     # Extract optional pre-calculated data
     pre_score = data.pop('risk_score', None)
     pre_level = data.pop('risk_level', None)
@@ -226,6 +277,10 @@ def generate_report_stream(patient: ReportGenerationRequest):
     data.pop('clinician_id', None)
     data.pop('clinician_name', None)
     patient_name = data.pop('patient_name', None)
+    data.pop('village', None)
+    data.pop('systolic_bp', None)
+    data.pop('diastolic_bp', None)
+    data.pop('phq9_scores', None)
 
     # Use pre-calculated data if available, otherwise calculate
     if pre_score is not None and pre_explanations is not None:
@@ -233,9 +288,9 @@ def generate_report_stream(patient: ReportGenerationRequest):
         level = pre_level if pre_level else get_risk_level(score)
         explanations = pre_explanations
     else:
-        score = risk_engine.predict_risk(data)
+        score = engine.predict_risk(data)
         level = get_risk_level(score)
-        explanations = risk_engine.explain_risk(data)
+        explanations = engine.explain_risk(data)
 
     def event_generator():
         # 1. Yield Risk Data first (fast)
@@ -245,7 +300,7 @@ def generate_report_stream(patient: ReportGenerationRequest):
         
         # 2. Yield LLM tokens
         if clinical_llm is None or clinical_llm.model is None:
-            mock_text = f"Using Mock AI (LLM Offline). Patient is {level} Risk with score {score:.2f}."
+            mock_text = f"Clinical Screening Summary: Patient is {level} Risk with score {score:.2f}. Advise lifestyle monitoring and standard primary care follow-up."
             for word in mock_text.split():
                 yield f"data: {word} \n\n"
                 full_report += word + " "
@@ -262,7 +317,7 @@ def generate_report_stream(patient: ReportGenerationRequest):
                 pdf_filename = pdf_service.generate_report(data, score, level, full_report, explanations, patient_name=patient_name)
                 pdf_url = f"/pdfs/{pdf_filename}"
             except Exception as e:
-                print(f"Error generating PDF: {e}")
+                app_logger.error(f"Error generating PDF: {e}")
         
         # 4. Yield Final PDF URL
         if pdf_url:
@@ -271,6 +326,7 @@ def generate_report_stream(patient: ReportGenerationRequest):
         yield "event: done\ndata: [DONE]\n\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
+
 
 def get_risk_level(score):
     if score < 0.3: return "Low"

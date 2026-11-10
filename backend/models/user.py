@@ -9,5 +9,6 @@ class User(Base):
     name = Column(String)
     hashed_password = Column(String, nullable=True) # password optional for Google Users
     google_id = Column(String, unique=True, nullable=True, index=True) # Unique Google ID
+    role = Column(String, default="worker", nullable=False) # 'worker', 'doctor', 'admin'
     specialty = Column(String, nullable=True)
     hospital = Column(String, nullable=True)
