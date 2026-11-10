@@ -155,9 +155,21 @@ const AppShell: React.FC<AppShellProps> = ({ children, user, onLogout, currentVi
             <div className="h-28" />
 
             {/* Main Content */}
-            <main className="max-w-[1400px] mx-auto px-6 py-4 animate-fade-in pb-20">
+            <main className="max-w-[1400px] mx-auto px-6 py-4 animate-fade-in pb-12">
                 {children}
             </main>
+
+            {/* Research Prototype Footer Disclaimer */}
+            <footer className="border-t border-slate-200/60 dark:border-slate-800/60 py-6 text-center text-xs text-slate-500 dark:text-slate-400 bg-white/40 dark:bg-slate-900/40 backdrop-blur-sm">
+                <div className="max-w-4xl mx-auto px-4 space-y-1.5">
+                    <p className="font-semibold text-slate-700 dark:text-slate-300">
+                        ⚖️ Sanjeevni Healthcarer is a research prototype developed for rural community health screening.
+                    </p>
+                    <p className="text-[11px] opacity-80">
+                        It does NOT provide definitive medical diagnoses or clinical prescriptions and must NEVER replace consultation with a qualified doctor. In medical emergencies, immediately dial 112 or Tele-MANAS 14416.
+                    </p>
+                </div>
+            </footer>
         </div>
     );
 };
