@@ -1,0 +1,83 @@
+{
+  "brand": {
+    "name": "Sanjeevni Healthcarer",
+    "subtitle": "Rural AI Screening Platform for ASHA Health Workers",
+    "prototype_disclaimer": "Research prototype for rural health screening. Does not replace professional clinical diagnosis.",
+    "role_worker": "Health Worker (ASHA)",
+    "role_doctor": "Medical Officer (PHC)",
+    "role_admin": "Health Admin"
+  },
+  "nav": {
+    "screening": "Guided Screening",
+    "dashboard": "Doctor PHC Queue",
+    "timeline": "Patient History",
+    "assistant": "AI Wellness Guide",
+    "model_card": "Model Card & Audit",
+    "logout": "Sign Out"
+  },
+  "visit": {
+    "title": "5-Minute Guided Doorstep Visit",
+    "step1": "Basic Vitals",
+    "step2": "Blood Pressure",
+    "step3": "PHQ-9 Mental Health",
+    "step4": "Triage & Referral",
+    "consent_checkbox": "I confirm patient consent was taken before recording health information.",
+    "age": "Age (years)",
+    "gender": "Gender",
+    "male": "Male",
+    "female": "Female",
+    "other": "Other",
+    "bmi": "BMI (kg/m²)",
+    "glucose": "Blood Glucose (mg/dL)",
+    "hba1c": "HbA1c Level (%)",
+    "systolic": "Systolic BP (mmHg)",
+    "diastolic": "Diastolic BP (mmHg)",
+    "smoking": "Smoking History",
+    "never": "Never",
+    "former": "Former",
+    "current": "Current",
+    "next": "Next Step",
+    "prev": "Back",
+    "complete": "Generate Clinical Triage",
+    "voice_input": "Speak to fill",
+    "voice_listening": "Listening...",
+    "voice_unsupported": "Voice input not supported in this browser."
+  },
+  "triage": {
+    "green_title": "🟢 GREEN: Low Risk / Home Care Advice",
+    "green_action": "Reinforce healthy diet, 30 min daily walking, and reschedule routine screening in 6 months.",
+    "yellow_title": "🟡 YELLOW: Elevated Risk / PHC Visit Soon",
+    "yellow_action": "Refer patient to Primary Health Centre (PHC) within 7 days for physician evaluation and lifestyle coaching.",
+    "red_title": "🔴 RED: High Risk / See Doctor Now",
+    "red_action": "CRITICAL: Immediate referral required. Escort or notify Medical Officer immediately.",
+    "reasons": "Key Escalation Factors",
+    "read_aloud": "Read Decision Aloud",
+    "reading": "Reading aloud...",
+    "save_success": "Visit saved securely to registry.",
+    "offline_badge": "Offline Estimate",
+    "whatsapp_reminder": "Send WhatsApp Advice"
+  },
+  "phq9": {
+    "title": "PHQ-9 Mental Health Screener",
+    "subtitle": "Over the last 2 weeks, how often have you been bothered by:",
+    "q1": "1. Little interest or pleasure in doing things",
+    "q2": "2. Feeling down, depressed, or hopeless",
+    "q3": "3. Trouble falling or staying asleep, or sleeping too much",
+    "q4": "4. Feeling tired or having little energy",
+    "q5": "5. Poor appetite or overeating",
+    "q6": "6. Feeling bad about yourself — or that you are a failure",
+    "q7": "7. Trouble concentrating on things (reading, listening)",
+    "q8": "8. Moving or speaking slowly, or being fidgety/restless",
+    "q9": "9. Thoughts that you would be better off dead or hurting yourself",
+    "opt0": "Not at all (0)",
+    "opt1": "Several days (1)",
+    "opt2": "More than half the days (2)",
+    "opt3": "Nearly every day (3)"
+  },
+  "emergency": {
+    "crisis_alert": "Critical Safety Escalation Triggered",
+    "tele_manas": "Tele-MANAS Toll-Free: 14416",
+    "ambulance": "Ambulance / Emergency: 112",
+    "kiran": "KIRAN Helpline: 1800-599-0019"
+  }
+}
