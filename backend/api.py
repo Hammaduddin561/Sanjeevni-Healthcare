@@ -274,7 +274,7 @@ def generate_report(patient: PatientRequest, engine: RiskEngine = Depends(get_sh
         level = get_risk_level(score)
         explanations = engine.explain_risk(data)
         
-        if clinical_llm is None or clinical_llm.model is None:
+        if llm_engine is None or not llm_engine.is_available():
             app_logger.info("Using standard template report (LLM offline).")
             report = f"""
             **Clinical Validation Summary:**
@@ -291,7 +291,7 @@ def generate_report(patient: PatientRequest, engine: RiskEngine = Depends(get_sh
             *Research prototype disclaimer: For clinical screening assistance only; not a diagnostic replacement.*
             """
         else:
-            report = clinical_llm.generate_report(data, score, level, explanations, patient_name=patient_name)
+            report = llm_engine.generate_doctor_summary(data, score, level.upper(), [e.get("feature", "") for e in explanations])
         
         pdf_filename = None
         pdf_url = None
@@ -374,17 +374,17 @@ def generate_report_stream(patient: ReportGenerationRequest, engine: RiskEngine 
         
         full_report = ""
         
-        # 2. Yield LLM tokens
-        if clinical_llm is None or clinical_llm.model is None:
+        # 2. Yield LLM tokens or verified template
+        if llm_engine is None:
             mock_text = f"Clinical Screening Summary: Patient is {level} Risk with score {score:.2f}. Advise lifestyle monitoring and standard primary care follow-up."
             for word in mock_text.split():
                 yield f"data: {word} \n\n"
                 full_report += word + " "
         else:
-            for token in clinical_llm.stream_report(data, score, level, explanations, patient_name=patient_name):
-                yield f"data: {token}\n\n"
-                if isinstance(token, str):
-                    full_report += token
+            summary = llm_engine.generate_doctor_summary(data, score, level.upper(), [e.get("feature", "") for e in explanations])
+            for word in summary.split():
+                yield f"data: {word} \n\n"
+                full_report += word + " "
         
         # 3. Generate PDF in background
         pdf_url = None
