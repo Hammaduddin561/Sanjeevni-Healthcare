@@ -10,7 +10,10 @@ from backend.database import get_db, Base, engine
 from backend.models.visit import Visit
 from backend.models.user import User
 from backend.models.audit import record_audit_event
-from backend.models.risk_engine import RiskEngine, build_bilingual_plain_explanations
+from backend.models.risk_engine import (
+    RiskEngine, build_bilingual_plain_explanations,
+    NOLAB_LABEL_EN, NOLAB_RECOMMENDATION_EN
+)
 from backend.models.safety_layer import SafetyLayer
 from backend.services.history import HistoryService
 from backend.schemas.patient import VisitCreateRequest, VisitResponse, PatientTimelineResponse
@@ -81,21 +84,35 @@ def conduct_screening_visit(
             )
 
         # 1. Clean data for ML risk engine
+        no_lab = engine.is_no_lab(p_dict)
+        lab_mode = "no_lab" if no_lab else "full_lab"
+        mode_label = NOLAB_LABEL_EN if no_lab else None
+        rec_followup = NOLAB_RECOMMENDATION_EN if no_lab else None
+
         ml_input = p_dict.copy()
+        if ml_input.get("hypertension", 0) == 0 and (
+            (ml_input.get("systolic_bp") is not None and ml_input["systolic_bp"] >= 140)
+            or (ml_input.get("diastolic_bp") is not None and ml_input["diastolic_bp"] >= 90)
+        ):
+            ml_input["hypertension"] = 1
+
         for k in ["visit_id", "patient_id", "worker_id", "worker_name", "clinician_id", 
                   "clinician_name", "patient_name", "village", "notes", "systolic_bp", 
                   "diastolic_bp", "phq9_scores"]:
             ml_input.pop(k, None)
 
-        # 2. Predict calibrated ML risk
+        # 2. Predict calibrated ML risk (auto-routes Full-Lab vs No-Lab)
         ml_risk_score = engine.predict_risk(ml_input)
 
         # 3. Generate SHAP explanations & bilingual plain-language summaries
         explanations = engine.explain_risk(ml_input)
-        summary_en, summary_hi = build_bilingual_plain_explanations(explanations, ml_input)
+        summary_en, summary_hi = build_bilingual_plain_explanations(explanations, ml_input, no_lab=no_lab)
 
-        # 4. Deterministic Safety Layer evaluation (Strict non-downgrade)
+        # 4. Deterministic Safety Layer evaluation (applies to BOTH paths)
         safety_eval = SafetyLayer.evaluate_triage(p_dict, ml_risk_score)
+        action_details = safety_eval.action_details
+        if no_lab:
+            action_details = f"{NOLAB_LABEL_EN}. {action_details} {NOLAB_RECOMMENDATION_EN}"
 
         # 5. Save to database
         db_visit = Visit(
@@ -114,6 +131,7 @@ def conduct_screening_visit(
             hypertension_flag=safety_eval.hypertension_flag,
             blood_glucose_level=request.blood_glucose_level,
             HbA1c_level=request.HbA1c_level,
+            lab_mode=lab_mode,
             smoking_history=request.smoking_history,
             heart_disease=request.heart_disease,
             phq9_scores=json.dumps(request.phq9_scores) if request.phq9_scores else None,
@@ -126,7 +144,7 @@ def conduct_screening_visit(
             safety_escalated=safety_eval.safety_escalated,
             escalation_reasons=json.dumps(safety_eval.escalation_reasons),
             action_headline=safety_eval.action_headline,
-            action_details=safety_eval.action_details,
+            action_details=action_details,
             notes=request.notes
         )
         db.add(db_visit)
@@ -150,6 +168,7 @@ def conduct_screening_visit(
             details={
                 "visit_id": client_visit_id,
                 "triage": safety_eval.final_triage,
+                "lab_mode": lab_mode,
                 "safety_escalated": safety_eval.safety_escalated,
                 "village": db_visit.village
             }
@@ -173,6 +192,9 @@ def conduct_screening_visit(
             bmi=db_visit.bmi,
             blood_glucose_level=db_visit.blood_glucose_level,
             HbA1c_level=db_visit.HbA1c_level,
+            lab_mode=lab_mode,
+            model_mode_label=mode_label,
+            recommended_followup=rec_followup,
             systolic_bp=db_visit.systolic_bp,
             diastolic_bp=db_visit.diastolic_bp,
             hypertension_flag=db_visit.hypertension_flag,

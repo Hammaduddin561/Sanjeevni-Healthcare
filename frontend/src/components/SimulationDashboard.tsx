@@ -28,8 +28,8 @@ const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ originalData 
         try {
             const backendMods: Record<string, any> = {};
             if (modifications.bmi !== 0) backendMods.bmi = originalData.bmi + modifications.bmi;
-            if (modifications.HbA1c_level !== 0) backendMods.HbA1c_level = originalData.HbA1c_level + modifications.HbA1c_level;
-            if (modifications.blood_glucose_level !== 0) backendMods.blood_glucose_level = originalData.blood_glucose_level + modifications.blood_glucose_level;
+            if (modifications.HbA1c_level !== 0) backendMods.HbA1c_level = (originalData.HbA1c_level ?? 5.7) + modifications.HbA1c_level;
+            if (modifications.blood_glucose_level !== 0) backendMods.blood_glucose_level = (originalData.blood_glucose_level ?? 100) + modifications.blood_glucose_level;
 
             const result = await generateSimulationReport(originalData, backendMods);
             setAiReport(result.report);
@@ -48,8 +48,8 @@ const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ originalData 
                 // Construct absolute modification for backend
                 const backendMods: Record<string, any> = {};
                 if (mods.bmi !== 0) backendMods.bmi = originalData.bmi + mods.bmi;
-                if (mods.HbA1c_level !== 0) backendMods.HbA1c_level = originalData.HbA1c_level + mods.HbA1c_level;
-                if (mods.blood_glucose_level !== 0) backendMods.blood_glucose_level = originalData.blood_glucose_level + mods.blood_glucose_level;
+                if (mods.HbA1c_level !== 0) backendMods.HbA1c_level = (originalData.HbA1c_level ?? 5.7) + mods.HbA1c_level;
+                if (mods.blood_glucose_level !== 0) backendMods.blood_glucose_level = (originalData.blood_glucose_level ?? 100) + mods.blood_glucose_level;
 
                 if (Object.keys(backendMods).length === 0) {
                     setSimulationResult(null);
@@ -119,8 +119,8 @@ const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ originalData 
                             className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700 accent-clinical-teal"
                         />
                         <div className="text-[10px] font-medium text-slate-400 mt-1 flex justify-between">
-                            <span>Current: {originalData.HbA1c_level}%</span>
-                            <span>Target: {(originalData.HbA1c_level + modifications.HbA1c_level).toFixed(1)}%</span>
+                            <span>Current: {originalData.HbA1c_level ?? 'N/A'}%</span>
+                            <span>Target: {((originalData.HbA1c_level ?? 5.7) + modifications.HbA1c_level).toFixed(1)}%</span>
                         </div>
                     </div>
 
@@ -140,8 +140,8 @@ const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ originalData 
                             className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700 accent-clinical-teal"
                         />
                         <div className="text-[10px] font-medium text-slate-400 mt-1 flex justify-between">
-                            <span>Current: {originalData.blood_glucose_level}</span>
-                            <span>Target: {originalData.blood_glucose_level + modifications.blood_glucose_level}</span>
+                            <span>Current: {originalData.blood_glucose_level ?? 'N/A'}</span>
+                            <span>Target: {(originalData.blood_glucose_level ?? 100) + modifications.blood_glucose_level}</span>
                         </div>
                     </div>
                 </div>

@@ -9,7 +9,10 @@ import json
 sys.path.append(os.getcwd())
 
 from backend.utils.logger import app_logger, audit_logger
-from backend.models.risk_engine import RiskEngine, build_bilingual_plain_explanations
+from backend.models.risk_engine import (
+    RiskEngine, build_bilingual_plain_explanations,
+    NOLAB_LABEL_EN, NOLAB_RECOMMENDATION_EN
+)
 from backend.models.cohort_engine import CohortEngine
 from backend.models.counterfactuals import Counterfactuals
 from backend.models.llm_engine import LLMEngine
@@ -135,6 +138,7 @@ def predict_risk(
         diastolic = data.pop('diastolic_bp', None)
         phq9 = data.pop('phq9_scores', None)
 
+        no_lab = engine.is_no_lab(data)
         score = engine.predict_risk(data)
         level = get_risk_level(score)
         explanations = engine.explain_risk(data)
@@ -151,10 +155,17 @@ def predict_risk(
 
         record_audit_event(
             db, current_user.email, current_user.role, "PREDICT", "/predict", "success",
-            {"risk_level": level, "score": score}
+            {"risk_level": level, "score": score, "lab_mode": "no_lab" if no_lab else "full_lab"}
         )
 
-        return {"risk_score": score, "risk_level": level, "explanations": explanations}
+        return {
+            "risk_score": score,
+            "risk_level": level,
+            "lab_mode": "no_lab" if no_lab else "full_lab",
+            "model_mode_label": NOLAB_LABEL_EN if no_lab else None,
+            "recommended_followup": NOLAB_RECOMMENDATION_EN if no_lab else None,
+            "explanations": explanations,
+        }
     except Exception as e:
         app_logger.exception("Prediction failed")
         raise HTTPException(status_code=500, detail=str(e))
@@ -179,8 +190,9 @@ def explain_risk(
         data.pop('diastolic_bp', None)
         data.pop('phq9_scores', None)
         
+        no_lab = engine.is_no_lab(data)
         explanations = engine.explain_risk(data)
-        summary_en, summary_hi = build_bilingual_plain_explanations(explanations, data)
+        summary_en, summary_hi = build_bilingual_plain_explanations(explanations, data, no_lab=no_lab)
         return {
             "explanations": explanations,
             "summary_en": summary_en,

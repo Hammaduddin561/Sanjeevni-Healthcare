@@ -250,6 +250,59 @@ export const ModelCard: React.FC = () => {
                 </div>
             </div>
 
+            {/* No-Lab Screening Model Metrics & Fairness */}
+            {card.metrics?.no_lab && (
+                <div className="glass-panel p-6 rounded-2xl border border-amber-300/60 dark:border-amber-800/50 bg-amber-50/30 dark:bg-amber-950/10 space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200/60 dark:border-amber-900/40 pb-3">
+                        <div>
+                            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <Activity size={18} className="text-amber-600" />
+                                {card.metrics.no_lab.model_name || 'No-Lab Screening Model (Without Glucose or HbA1c)'}
+                            </h3>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                                Automatically activated when glucometer / HbA1c labs are unavailable. Uses age, BMI, hypertension/BP, heart disease, smoking &amp; gender.
+                            </p>
+                        </div>
+                        <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200">
+                            Confirm with Glucose Check
+                        </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                        <div className="p-3 rounded-xl bg-white/70 dark:bg-slate-900/40">
+                            <span className="text-lg font-black text-slate-900 dark:text-white block">
+                                {(card.metrics.no_lab.performance?.roc_auc ?? 0).toFixed(4)}
+                            </span>
+                            <span className="text-[11px] uppercase text-slate-500 font-bold">No-Lab ROC-AUC</span>
+                        </div>
+                        <div className="p-3 rounded-xl bg-white/70 dark:bg-slate-900/40">
+                            <span className="text-lg font-black text-emerald-600 block">
+                                {((card.metrics.no_lab.performance?.recall_sensitivity ?? 0) * 100).toFixed(1)}%
+                            </span>
+                            <span className="text-[11px] uppercase text-slate-500 font-bold">Sensitivity</span>
+                        </div>
+                        <div className="p-3 rounded-xl bg-white/70 dark:bg-slate-900/40">
+                            <span className="text-lg font-black text-slate-800 dark:text-slate-200 block">
+                                {((card.metrics.no_lab.performance?.specificity ?? 0) * 100).toFixed(1)}%
+                            </span>
+                            <span className="text-[11px] uppercase text-slate-500 font-bold">Specificity</span>
+                        </div>
+                        <div className="p-3 rounded-xl bg-white/70 dark:bg-slate-900/40">
+                            <span className="text-lg font-black text-teal-600 block">
+                                {(card.metrics.no_lab.performance?.brier_score_calibrated ?? 0).toFixed(4)}
+                            </span>
+                            <span className="text-[11px] uppercase text-slate-500 font-bold">Calibrated Brier</span>
+                        </div>
+                    </div>
+
+                    {card.fairness?.no_lab_fairness?.age_audit?.summary && (
+                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                            <strong>No-Lab Age Audit:</strong> {card.fairness.no_lab_fairness.age_audit.summary}
+                        </p>
+                    )}
+                </div>
+            )}
+
             {/* Clinical Limitations */}
             <div className="glass-panel p-6 rounded-2xl border border-white/20 dark:border-white/5 space-y-4">
                 <h3 className="text-sm font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 flex items-center gap-2">
