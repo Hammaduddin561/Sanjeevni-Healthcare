@@ -1,0 +1,5 @@
+Method,Name,Error,Occurrences
+POST,/simulate,HTTPError('503 Server Error: Service Unavailable for url: /simulate'),5
+POST,/explain,HTTPError('503 Server Error: Service Unavailable for url: /explain'),12
+POST,/report,HTTPError('500 Server Error: Internal Server Error for url: /report'),3
+POST,/predict,HTTPError('503 Server Error: Service Unavailable for url: /predict'),62

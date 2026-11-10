@@ -1,0 +1,36 @@
+model_id: clinical-risk-predictor-sota-v1
+version: 1.0.0
+date: 2026-01-22
+author: Antigravity AI (SOTA Overhaul Agent)
+
+domain: Healthcare / Clinical Risk Prediction
+task: Binary Classification (Diabetes Risk)
+
+architecture:
+  type: Ensemble of Ensembles (Stacking)
+  base_models:
+    - XGBoost (Gradient Boosting Trees)
+    - LightGBM (Leaf-wise Gradient Boosting)
+    - CatBoost (Ordered Boosting)
+  meta_learner: Logistic Regression
+  
+features:
+  novelty:
+    - Cross-Domain Interactions (Glucose * HbA1c, BMI * Age)
+    - Binning Strategies (BMI Categories: Underweight/Normal/Overweight/Obese)
+  preprocessing:
+    - Numeric: Median Imputation + Standard Scaling
+    - Categorical: One-Hot Encoding
+    
+metrics:
+  baseline_roc_auc: 0.9738
+  target_improvement: Robust F1 Score & Calibration
+  validation_strategy: 5-Fold Stratified Cross-Validation
+
+intended_use:
+  - Clinical decision support tool
+  - Hackathon benchmark submission
+
+caveats:
+  - Trained on synthetic/local dataset "diabetes_dataset.csv"
+  - Requires accurate clinical inputs for valid prediction
