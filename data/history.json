@@ -642,5 +642,237 @@
             "score": 0.0,
             "level": "RED"
         }
+    },
+    {
+        "id": 27,
+        "timestamp": "2026-11-10T11:14:06.691347",
+        "patient_data": {
+            "gender": "Male",
+            "age": 45.0,
+            "hypertension": 0,
+            "heart_disease": 0,
+            "smoking_history": "never",
+            "bmi": 25.5,
+            "HbA1c_level": 5.5,
+            "blood_glucose_level": 100.0
+        },
+        "risk_assessment": {
+            "score": 5.3049574489705265e-05,
+            "level": "Low"
+        }
+    },
+    {
+        "id": 28,
+        "timestamp": "2026-11-10T11:14:21.834427",
+        "patient_data": {
+            "gender": "Male",
+            "age": 45.0,
+            "hypertension": 0,
+            "heart_disease": 1,
+            "smoking_history": "former",
+            "bmi": 28.5,
+            "HbA1c_level": 6.2,
+            "blood_glucose_level": 140.0
+        },
+        "risk_assessment": {
+            "score": 0.6383092403411865,
+            "level": "Moderate"
+        }
+    },
+    {
+        "id": 29,
+        "timestamp": "2026-11-10T11:14:25.024582",
+        "patient_data": {
+            "gender": "Female",
+            "age": 35.0,
+            "hypertension": 0,
+            "heart_disease": 0,
+            "smoking_history": "never",
+            "bmi": 22.4,
+            "HbA1c_level": 5.2,
+            "blood_glucose_level": 92.0,
+            "systolic_bp": 118.0,
+            "diastolic_bp": 76.0,
+            "phq9_scores": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "clinician_id": null,
+            "clinician_name": null,
+            "patient_name": "Meera Devi",
+            "village": "Rampur",
+            "visit_id": null,
+            "patient_id": "P_RAMPUR_01",
+            "worker_id": null,
+            "worker_name": null,
+            "notes": null
+        },
+        "risk_assessment": {
+            "score": 0.0,
+            "level": "GREEN"
+        }
+    },
+    {
+        "id": 30,
+        "timestamp": "2026-11-10T11:14:25.263780",
+        "patient_data": {
+            "gender": "Male",
+            "age": 25.0,
+            "hypertension": 0,
+            "heart_disease": 0,
+            "smoking_history": "never",
+            "bmi": 21.5,
+            "HbA1c_level": 5.0,
+            "blood_glucose_level": 92.0,
+            "systolic_bp": 185.0,
+            "diastolic_bp": 122.0,
+            "phq9_scores": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                2
+            ],
+            "clinician_id": null,
+            "clinician_name": null,
+            "patient_name": "Rajesh Kumar",
+            "village": "Rampur",
+            "visit_id": null,
+            "patient_id": "P_RAMPUR_02",
+            "worker_id": null,
+            "worker_name": null,
+            "notes": null
+        },
+        "risk_assessment": {
+            "score": 0.0,
+            "level": "RED"
+        }
+    },
+    {
+        "id": 31,
+        "timestamp": "2026-11-10T11:30:40.419667",
+        "patient_data": {
+            "gender": "Male",
+            "age": 45.0,
+            "hypertension": 0,
+            "heart_disease": 0,
+            "smoking_history": "never",
+            "bmi": 25.5,
+            "HbA1c_level": 5.5,
+            "blood_glucose_level": 100.0
+        },
+        "risk_assessment": {
+            "score": 5.3049574489705265e-05,
+            "level": "Low"
+        }
+    },
+    {
+        "id": 32,
+        "timestamp": "2026-11-10T11:30:57.323758",
+        "patient_data": {
+            "gender": "Male",
+            "age": 45.0,
+            "hypertension": 0,
+            "heart_disease": 1,
+            "smoking_history": "former",
+            "bmi": 28.5,
+            "HbA1c_level": 6.2,
+            "blood_glucose_level": 140.0
+        },
+        "risk_assessment": {
+            "score": 0.6383092403411865,
+            "level": "Moderate"
+        }
+    },
+    {
+        "id": 33,
+        "timestamp": "2026-11-10T11:30:59.723267",
+        "patient_data": {
+            "gender": "Female",
+            "age": 35.0,
+            "hypertension": 0,
+            "heart_disease": 0,
+            "smoking_history": "never",
+            "bmi": 22.4,
+            "HbA1c_level": 5.2,
+            "blood_glucose_level": 92.0,
+            "systolic_bp": 118.0,
+            "diastolic_bp": 76.0,
+            "phq9_scores": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "clinician_id": null,
+            "clinician_name": null,
+            "patient_name": "Meera Devi",
+            "village": "Rampur",
+            "visit_id": null,
+            "patient_id": "P_RAMPUR_01",
+            "worker_id": null,
+            "worker_name": null,
+            "notes": null
+        },
+        "risk_assessment": {
+            "score": 0.0,
+            "level": "GREEN"
+        }
+    },
+    {
+        "id": 34,
+        "timestamp": "2026-11-10T11:30:59.882872",
+        "patient_data": {
+            "gender": "Male",
+            "age": 25.0,
+            "hypertension": 0,
+            "heart_disease": 0,
+            "smoking_history": "never",
+            "bmi": 21.5,
+            "HbA1c_level": 5.0,
+            "blood_glucose_level": 92.0,
+            "systolic_bp": 185.0,
+            "diastolic_bp": 122.0,
+            "phq9_scores": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                2
+            ],
+            "clinician_id": null,
+            "clinician_name": null,
+            "patient_name": "Rajesh Kumar",
+            "village": "Rampur",
+            "visit_id": null,
+            "patient_id": "P_RAMPUR_02",
+            "worker_id": null,
+            "worker_name": null,
+            "notes": null
+        },
+        "risk_assessment": {
+            "score": 0.0,
+            "level": "RED"
+        }
     }
 ]
