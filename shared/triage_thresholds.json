@@ -1,0 +1,55 @@
+{
+  "thresholds": {
+    "ml_red_threshold": 0.65,
+    "ml_yellow_threshold": 0.35,
+    "severe_glucose_critical": 300.0,
+    "elevated_glucose_warning": 200.0,
+    "severe_hba1c_critical": 12.0,
+    "elevated_hba1c_warning": 8.5,
+    "hypertensive_crisis_systolic": 180.0,
+    "hypertensive_crisis_diastolic": 120.0,
+    "stage2_hypertension_systolic": 140.0,
+    "stage2_hypertension_diastolic": 90.0,
+    "phq9_self_harm_item_index": 8,
+    "phq9_severe_threshold": 20,
+    "phq9_moderate_threshold": 10
+  },
+  "offline_logistic_full_lab": {
+    "features": [
+      "age",
+      "bmi",
+      "hypertension",
+      "heart_disease",
+      "blood_glucose_level",
+      "HbA1c_level"
+    ],
+    "intercept": -23.838599,
+    "coefficients": {
+      "age": 0.050058,
+      "bmi": 0.097734,
+      "hypertension": 0.898214,
+      "heart_disease": 0.871854,
+      "blood_glucose_level": 0.031604,
+      "HbA1c_level": 2.142801
+    },
+    "test_roc_auc": 0.9616,
+    "test_brier_score": 0.0781
+  },
+  "offline_logistic_no_lab": {
+    "features": [
+      "age",
+      "bmi",
+      "hypertension",
+      "heart_disease"
+    ],
+    "intercept": -5.665289,
+    "coefficients": {
+      "age": 0.050236,
+      "bmi": 0.095588,
+      "hypertension": 0.937508,
+      "heart_disease": 0.913592
+    },
+    "test_roc_auc": 0.8209,
+    "test_brier_score": 0.1756
+  }
+}
