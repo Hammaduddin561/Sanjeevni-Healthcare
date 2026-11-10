@@ -1,0 +1,14 @@
+Source: WHO mhGAP Intervention Guide & Kroenke et al. (2001) PHQ-9 Clinical Manual
+Topic: Depression Screening, Severity Stratification, and Suicide Safety Protocol
+Summary:
+The Patient Health Questionnaire (PHQ-9) is a 9-item screening instrument used in primary care:
+- Score 0 to 4: None or Minimal Depression. Provide positive encouragement, regular sleep routine, and healthy community engagement.
+- Score 5 to 9: Mild Depression. Supportive counselling, active physical activity, and watchful waiting.
+- Score 10 to 14: Moderate Depression. Recommend consultation with a primary health centre medical officer or mental health counsellor.
+- Score 15 to 19: Moderately Severe Depression. Clinical psychotherapy and pharmacotherapy evaluation.
+- Score 20 to 27: Severe Depression. Urgent clinical referral to medical officer or psychiatrist.
+Suicide and Self-Harm Safety Alert (Item 9):
+Any non-zero score (1, 2, or 3) on Question 9 ("Thoughts that you would be better off dead or of hurting yourself") mandates immediate activation of crisis safety protocol:
+1. Do not leave the patient unattended.
+2. Connect immediately to national 24/7 mental health crisis helplines: Tele-MANAS (Toll-free 14416) or KIRAN (1800-599-0019).
+3. Arrange immediate escort to the nearest emergency hospital.

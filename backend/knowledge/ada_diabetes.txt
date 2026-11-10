@@ -1,0 +1,8 @@
+Source: ADA Standards of Care in Diabetes (2024)
+Topic: Diabetes Screening, Targets, and Symptoms
+Summary:
+Normal fasting blood glucose is under 100 mg/dL. Random blood glucose under 140 mg/dL is normal.
+A random blood glucose of 200 mg/dL or higher, accompanied by classic symptoms (increased thirst, frequent urination, unexplained weight loss, fatigue), indicates diabetes requiring confirmatory venous blood testing.
+Normal HbA1c is below 5.7%. Prediabetes is between 5.7% and 6.4%. Diabetes is diagnosed at HbA1c of 6.5% or higher.
+Severe Acute Hyperglycemia: Blood glucose >= 300 mg/dL or HbA1c >= 12.0% represents severe decompensation and requires immediate emergency medical evaluation to rule out Diabetic Ketoacidosis (DKA) or Hyperosmolar Hyperglycemic State (HHS).
+Lifestyle Recommendations: Aim for at least 150 minutes of moderate-intensity physical activity weekly, such as brisk walking. Emphasize dietary fiber from whole grains, legumes, pulses, and green vegetables, and minimize refined sugars and ultra-processed carbohydrates.
