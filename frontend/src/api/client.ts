@@ -110,6 +110,7 @@ export interface PredictionResponse {
     lab_mode?: 'full_lab' | 'no_lab';
     model_mode_label?: string | null;
     recommended_followup?: string | null;
+    is_offline_estimate?: boolean;
     shap_values?: Record<string, number>;
     explanations?: Array<{
         feature: string;
@@ -185,6 +186,7 @@ export interface ScreeningVisitResponse {
     lab_mode?: 'full_lab' | 'no_lab';
     model_mode_label?: string | null;
     recommended_followup?: string | null;
+    is_offline_estimate?: boolean;
     systolic_bp?: number;
     diastolic_bp?: number;
     hypertension_flag: number;
@@ -227,8 +229,13 @@ import { calculateOfflineRisk } from '../utils/offlineRiskCalculator';
 import { saveVisitToIndexedDB } from '../utils/offlineSync';
 
 export const submitScreeningVisit = async (visit: ScreeningVisitInput): Promise<ScreeningVisitResponse> => {
+    // Assign a deterministic client visit_id upfront for idempotent online retries / offline sync
+    const visitWithId: ScreeningVisitInput = {
+        ...visit,
+        visit_id: visit.visit_id || `vis_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`
+    };
     try {
-        const res = await apiClient.post<ScreeningVisitResponse>('/visit', visit);
+        const res = await apiClient.post<ScreeningVisitResponse>('/visit', visitWithId);
         return res.data;
     } catch (err: any) {
         // Never treat HTTP auth/validation errors (401, 403, 422) as offline!
@@ -236,8 +243,8 @@ export const submitScreeningVisit = async (visit: ScreeningVisitInput): Promise<
             throw err;
         }
         console.warn("Backend unreachable; computing offline estimate and queuing to IndexedDB", err);
-        const offlineResult = calculateOfflineRisk(visit);
-        await saveVisitToIndexedDB(visit, offlineResult);
+        const offlineResult = calculateOfflineRisk(visitWithId);
+        await saveVisitToIndexedDB(visitWithId, offlineResult);
         return offlineResult;
     }
 };

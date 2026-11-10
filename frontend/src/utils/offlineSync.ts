@@ -37,10 +37,11 @@ export const saveVisitToIndexedDB = async (
     const db = await openDB();
     const tx = db.transaction(STORE_NAME, 'readwrite');
     const store = tx.objectStore(STORE_NAME);
+    const idempotentId = payload.visit_id || offlineResult.visit_id;
     const record: StoredVisitRecord = {
-      visit_id: offlineResult.visit_id,
-      payload,
-      offlineResult,
+      visit_id: idempotentId,
+      payload: { ...payload, visit_id: idempotentId },
+      offlineResult: { ...offlineResult, visit_id: idempotentId },
       saved_at: new Date().toISOString()
     };
     store.put(record);

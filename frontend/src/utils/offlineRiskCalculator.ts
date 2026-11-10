@@ -181,6 +181,7 @@ export const calculateOfflineRisk = (input: ScreeningVisitInput): ScreeningVisit
     recommended_followup: isNoLab
       ? 'Recommended: Confirm with a blood glucose (glucometer/fasting) or HbA1c lab check.'
       : null,
+    is_offline_estimate: true,
     systolic_bp: input.systolic_bp,
     diastolic_bp: input.diastolic_bp,
     hypertension_flag: hypertension,
