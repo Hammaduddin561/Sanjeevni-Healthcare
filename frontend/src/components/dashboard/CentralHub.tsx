@@ -114,8 +114,12 @@ const CentralHub: React.FC<CentralHubProps> = ({ prediction, patientInput }) => 
             </SectionCard>
 
             {/* 3. SHAP Explainability */}
-            <SectionCard title="Explainability" subtitle="Global Feature Importance" className="shadow-glass dark:shadow-glass-dark">
-                <ShapExplainer explanations={prediction.explanations || []} />
+            <SectionCard title="Explainability" subtitle="Bilingual Plain Language & SHAP" className="shadow-glass dark:shadow-glass-dark">
+                <ShapExplainer
+                    explanations={prediction.explanations || []}
+                    summary_en={prediction.summary_en}
+                    summary_hi={prediction.summary_hi}
+                />
             </SectionCard>
         </div>
     );

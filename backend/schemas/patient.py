@@ -114,6 +114,11 @@ class RiskResponse(BaseModel):
 
 class ExplanationResponse(BaseModel):
     explanations: List[Dict[str, Any]]
+    summary_en: Optional[str] = None
+    summary_hi: Optional[str] = None
+
+class CounterfactualResponse(BaseModel):
+    scenarios: List[Dict[str, Any]]
 
 class ReportResponse(BaseModel):
     report: str

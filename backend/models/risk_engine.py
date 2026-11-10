@@ -7,6 +7,62 @@ import shap
 
 logger = logging.getLogger("sanjeevni.risk_engine")
 
+FEATURE_MAP = {
+    "HbA1c_level": {"en": "HbA1c", "hi": "HbA1c (ग्लाइकेटेड हीमोग्लोबिन)"},
+    "blood_glucose_level": {"en": "Blood Glucose", "hi": "रक्त शर्करा (ग्लूकोज)"},
+    "bmi": {"en": "BMI (Body Weight)", "hi": "बीएमआई (शरीर का वजन)"},
+    "age": {"en": "Age", "hi": "आयु"},
+    "hypertension": {"en": "High Blood Pressure", "hi": "उच्च रक्तचाप"},
+    "heart_disease": {"en": "Heart Disease History", "hi": "हृदय रोग"},
+    "smoking_history": {"en": "Smoking Status", "hi": "धूम्रपान की स्थिति"},
+    "BMI_Age_Interaction": {"en": "Weight & Age Synergy", "hi": "वजन और आयु का संयुक्त प्रभाव"},
+    "Glucose_HbA1c_Interaction": {"en": "Combined Glycemic Markers", "hi": "ग्लूकोज व HbA1c संयुक्त संकेतक"},
+}
+
+
+def build_bilingual_plain_explanations(explanations: list, patient_data: dict):
+    """Generates plain language sentences in English and Hindi from SHAP values."""
+    increasing = [e for e in explanations if e.get("impact_score", 0) > 0.02]
+    decreasing = [e for e in explanations if e.get("impact_score", 0) < -0.02]
+
+    # Individual sentence tagging
+    for item in explanations:
+        f = item["feature"]
+        score = item["impact_score"]
+        val = item.get("value", "-")
+        meta = FEATURE_MAP.get(f, {"en": f, "hi": f})
+        f_en = meta["en"]
+        f_hi = meta["hi"]
+
+        if score > 0.02:
+            item["plain_text_en"] = f"Your {f_en} ({val}) is higher than standard targets, pushing risk up."
+            item["plain_text_hi"] = f"आपका {f_hi} ({val}) सामान्य सीमा से अधिक है, जिससे जोखिम बढ़ रहा है।"
+        elif score < -0.02:
+            item["plain_text_en"] = f"Your {f_en} ({val}) is in a favorable range, helping lower risk."
+            item["plain_text_hi"] = f"आपका {f_hi} ({val}) सुरक्षित सीमा में है, जिससे जोखिम कम करने में मदद मिलती है।"
+        else:
+            item["plain_text_en"] = f"Your {f_en} ({val}) has minimal impact on the calculated risk."
+            item["plain_text_hi"] = f"आपके {f_hi} ({val}) का अनुमानित जोखिम पर सामान्य प्रभाव है।"
+
+    # Summary sentences
+    if increasing:
+        top_en = " and ".join([FEATURE_MAP.get(e["feature"], {}).get("en", e["feature"]) for e in increasing[:2]])
+        top_hi = " और ".join([FEATURE_MAP.get(e["feature"], {}).get("hi", e["feature"]) for e in increasing[:2]])
+        summary_en = f"Your {top_en} are the primary factors elevating your screening risk."
+        summary_hi = f"आपका {top_hi} मधुमेह के जोखिम को बढ़ाने वाले मुख्य कारण हैं।"
+    else:
+        summary_en = "Your screening indicators are currently within favorable or stable reference ranges."
+        summary_hi = "आपकी स्वास्थ्य जांच रिपोर्ट के संकेतक फिलहाल सुरक्षित या सामान्य सीमा में हैं।"
+
+    if decreasing and increasing:
+        top_dec_en = FEATURE_MAP.get(decreasing[0]["feature"], {}).get("en", decreasing[0]["feature"])
+        top_dec_hi = FEATURE_MAP.get(decreasing[0]["feature"], {}).get("hi", decreasing[0]["feature"])
+        summary_en += f" On the positive side, your {top_dec_en} provides protective benefit."
+        summary_hi += f" अच्छी बात यह है कि आपका {top_dec_hi} जोखिम को नियंत्रित रखने में सहायक है।"
+
+    return summary_en, summary_hi
+
+
 class RiskEngine:
     def __init__(self, model_dir="backend/models"):
         self.model_path = os.path.join(model_dir, "risk_pipeline_v1.joblib")
@@ -147,6 +203,7 @@ class RiskEngine:
                 
             # Sort by absolute impact
             explanations.sort(key=lambda x: abs(x['impact_score']), reverse=True)
+            build_bilingual_plain_explanations(explanations, patient_data)
             return explanations
         except Exception as e:
             logger.warning(f"TreeExplainer calculation warning: {e}")

@@ -238,8 +238,12 @@ const ClinicianDashboard: React.FC<ClinicianDashboardProps> = ({ prediction, pat
             </SectionCard>
 
             {/* 4. Explainability Details */}
-            <SectionCard title="Model Explainability" subtitle="SHAP Feature Importance Analysis" className="shadow-glass dark:shadow-glass-dark">
-                <ShapExplainer explanations={prediction.explanations || []} />
+            <SectionCard title="Model Explainability" subtitle="Bilingual Plain Language Takeaways & SHAP Analysis" className="shadow-glass dark:shadow-glass-dark">
+                <ShapExplainer
+                    explanations={prediction.explanations || []}
+                    summary_en={prediction.summary_en}
+                    summary_hi={prediction.summary_hi}
+                />
             </SectionCard>
 
             {/* FHIR Modal Overlay */}
