@@ -790,7 +790,7 @@ export const GuidedVisitFlow: React.FC<GuidedVisitFlowProps> = ({
                                         <ShieldAlert size={12} /> Safety Guardrail Escalated
                                     </span>
                                 )}
-                                {result.visit_id.startsWith('offline_') && (
+                                {result.is_offline_estimate && (
                                     <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-600 text-white flex items-center gap-1 shadow-sm">
                                         <WifiOff size={12} /> {t('triage.offline_badge')} (Queued for Sync)
                                     </span>
