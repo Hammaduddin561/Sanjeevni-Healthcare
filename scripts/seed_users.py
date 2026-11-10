@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 """
 Database seed script for Sanjeevni Healthcarer.
-Creates 3 primary demo accounts:
+Creates 3 demo accounts:
 1. Health Worker (ASHA): worker@sanjeevni.org
-2. Doctor (PHC): doctor@phc.org (and doc@hospital.com for legacy compatibility)
+2. Doctor (PHC): doctor@phc.org
 3. Administrator: admin@hospital.org
+
+Passwords must be supplied via SEED_WORKER_PASSWORD, SEED_DOCTOR_PASSWORD,
+SEED_ADMIN_PASSWORD environment variables (dev defaults allowed ONLY when
+APP_ENV is explicitly set to "development").
 """
 import os
 import sys
@@ -12,11 +16,29 @@ import sys
 # Ensure backend can be imported
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from backend.database import Base, engine, SessionLocal
-from backend.models.user import User
-from backend.auth import get_password_hash
+APP_ENV = (os.getenv("APP_ENV") or "").strip().lower()
+
+
+def _resolve_seed_password(env_var: str, dev_default: str) -> str:
+    val = os.getenv(env_var)
+    if val:
+        return val
+    if APP_ENV == "development":
+        return dev_default
+    raise RuntimeError(
+        f"Missing {env_var}: seed passwords must come from environment variables unless APP_ENV=development."
+    )
+
 
 def seed():
+    from backend.database import Base, engine, SessionLocal
+    from backend.models.user import User
+    from backend.auth import get_password_hash
+
+    worker_pw = _resolve_seed_password("SEED_WORKER_PASSWORD", "Password@123")
+    doctor_pw = _resolve_seed_password("SEED_DOCTOR_PASSWORD", "Password@123")
+    admin_pw = _resolve_seed_password("SEED_ADMIN_PASSWORD", "password123")
+
     print("🌱 Initializing database schema...")
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
@@ -26,37 +48,34 @@ def seed():
             "email": "worker@sanjeevni.org",
             "name": "Sunita Devi (ASHA Worker)",
             "role": "worker",
-            "password": "Password@123",
+            "password": worker_pw,
             "specialty": "Community Health",
-            "hospital": "Sub-Health Centre Rampur"
+            "hospital": "Sub-Health Centre Rampur",
         },
         {
             "email": "doctor@phc.org",
             "name": "Dr. Ramesh Gupta (MO)",
             "role": "doctor",
-            "password": "Password@123",
+            "password": doctor_pw,
             "specialty": "Primary Care Medicine",
-            "hospital": "Primary Health Centre Rampur"
-        },
-        {
-            "email": "doc@hospital.com",
-            "name": "Dr. Ramesh Gupta (MO)",
-            "role": "doctor",
-            "password": "password123",
-            "specialty": "Primary Care Medicine",
-            "hospital": "Primary Health Centre Rampur"
+            "hospital": "Primary Health Centre Rampur",
         },
         {
             "email": "admin@hospital.org",
             "name": "System Administrator",
             "role": "admin",
-            "password": "password123",
+            "password": admin_pw,
             "specialty": "Clinical Informatics",
-            "hospital": "District Hospital"
-        }
+            "hospital": "District Hospital",
+        },
     ]
 
     try:
+        # Remove legacy duplicate demo account doc@hospital.com if present
+        removed = db.query(User).filter(User.email == "doc@hospital.com").delete()
+        if removed:
+            print(f"🧹 Removed legacy duplicate demo user: doc@hospital.com")
+
         created_count = 0
         updated_count = 0
         for u in demo_users:
@@ -76,25 +95,19 @@ def seed():
                     role=u["role"],
                     hashed_password=hashed,
                     specialty=u["specialty"],
-                    hospital=u["hospital"]
+                    hospital=u["hospital"],
                 )
                 db.add(user)
                 created_count += 1
         db.commit()
         print(f"✅ Seeding completed: {created_count} users created, {updated_count} updated.")
-        print("\nDemo Credentials:")
-        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        print("  1. Health Worker:  worker@sanjeevni.org   / Password@123")
-        print("  2. PHC Doctor:     doctor@phc.org         / Password@123")
-        print("     (Legacy Doc):   doc@hospital.com       / password123")
-        print("  3. Admin:          admin@hospital.org     / password123")
-        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     except Exception as e:
         db.rollback()
         print(f"❌ Seeding failed: {e}")
         raise
     finally:
         db.close()
+
 
 if __name__ == "__main__":
     seed()

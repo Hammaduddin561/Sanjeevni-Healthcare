@@ -1216,5 +1216,151 @@
             "score": 0.0006,
             "level": "GREEN"
         }
+    },
+    {
+        "id": 46,
+        "timestamp": "2026-11-10T11:59:20.433795",
+        "patient_data": {
+            "gender": "Male",
+            "age": 45.0,
+            "hypertension": 0,
+            "heart_disease": 0,
+            "smoking_history": "never",
+            "bmi": 25.5,
+            "HbA1c_level": 5.5,
+            "blood_glucose_level": 100.0
+        },
+        "risk_assessment": {
+            "score": 5.3049574489705265e-05,
+            "level": "Low"
+        }
+    },
+    {
+        "id": 47,
+        "timestamp": "2026-11-10T11:59:36.198110",
+        "patient_data": {
+            "gender": "Male",
+            "age": 45.0,
+            "hypertension": 0,
+            "heart_disease": 1,
+            "smoking_history": "former",
+            "bmi": 28.5,
+            "HbA1c_level": 6.2,
+            "blood_glucose_level": 140.0
+        },
+        "risk_assessment": {
+            "score": 0.6383092403411865,
+            "level": "Moderate"
+        }
+    },
+    {
+        "id": 48,
+        "timestamp": "2026-11-10T11:59:39.418934",
+        "patient_data": {
+            "gender": "Female",
+            "age": 35.0,
+            "hypertension": 0,
+            "heart_disease": 0,
+            "smoking_history": "never",
+            "bmi": 22.4,
+            "HbA1c_level": 5.2,
+            "blood_glucose_level": 92.0,
+            "systolic_bp": 118.0,
+            "diastolic_bp": 76.0,
+            "phq9_scores": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "clinician_id": null,
+            "clinician_name": null,
+            "patient_name": "Meera Devi",
+            "village": "Rampur",
+            "visit_id": null,
+            "patient_id": "P_RAMPUR_01",
+            "worker_id": null,
+            "worker_name": null,
+            "notes": null
+        },
+        "risk_assessment": {
+            "score": 0.0,
+            "level": "GREEN"
+        }
+    },
+    {
+        "id": 49,
+        "timestamp": "2026-11-10T11:59:40.005664",
+        "patient_data": {
+            "gender": "Male",
+            "age": 25.0,
+            "hypertension": 0,
+            "heart_disease": 0,
+            "smoking_history": "never",
+            "bmi": 21.5,
+            "HbA1c_level": 5.0,
+            "blood_glucose_level": 92.0,
+            "systolic_bp": 185.0,
+            "diastolic_bp": 122.0,
+            "phq9_scores": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                2
+            ],
+            "clinician_id": null,
+            "clinician_name": null,
+            "patient_name": "Rajesh Kumar",
+            "village": "Rampur",
+            "visit_id": null,
+            "patient_id": "P_RAMPUR_02",
+            "worker_id": null,
+            "worker_name": null,
+            "notes": null
+        },
+        "risk_assessment": {
+            "score": 0.0,
+            "level": "RED"
+        }
+    },
+    {
+        "id": 50,
+        "timestamp": "2026-11-10T11:59:44.050134",
+        "patient_data": {
+            "gender": "Female",
+            "age": 40.0,
+            "hypertension": 0,
+            "heart_disease": 0,
+            "smoking_history": "never",
+            "bmi": 24.5,
+            "HbA1c_level": 5.8,
+            "blood_glucose_level": 110.0,
+            "systolic_bp": null,
+            "diastolic_bp": null,
+            "phq9_scores": null,
+            "clinician_id": null,
+            "clinician_name": null,
+            "patient_name": "Confidential Doc Patient",
+            "village": "District HQ",
+            "visit_id": null,
+            "patient_id": "P_DOC_PRIVATE_99",
+            "worker_id": null,
+            "worker_name": null,
+            "notes": null
+        },
+        "risk_assessment": {
+            "score": 0.0006,
+            "level": "GREEN"
+        }
     }
 ]

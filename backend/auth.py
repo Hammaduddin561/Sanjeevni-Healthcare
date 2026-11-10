@@ -13,15 +13,18 @@ from backend.models.user import User
 logger = logging.getLogger("sanjeevni.auth")
 
 # Secret key for JWT from environment variable
-APP_ENV = os.getenv("APP_ENV", os.getenv("ENV", "development")).lower()
+APP_ENV = (os.getenv("APP_ENV") or "").strip().lower()
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 if not SECRET_KEY:
-    if APP_ENV == "production":
-        raise RuntimeError("CRITICAL SECURITY ERROR: SECRET_KEY environment variable is required in production mode!")
-    else:
+    if APP_ENV == "development":
         SECRET_KEY = "dev-insecure-secret-key-for-local-development-only"
-        logger.warning("Using default development SECRET_KEY. Set SECRET_KEY in environment for production.")
+        logger.warning("Using development-only default SECRET_KEY because APP_ENV=development.")
+    else:
+        raise RuntimeError(
+            "CRITICAL SECURITY ERROR: SECRET_KEY environment variable is required "
+            "unless APP_ENV is explicitly set to 'development'."
+        )
 
 ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", str(60 * 24))) # 24 hours

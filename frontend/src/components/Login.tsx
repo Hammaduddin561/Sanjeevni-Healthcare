@@ -136,7 +136,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToSignup }) => {
                   value={formData.email}
                   onChange={handleInputChange}
                   className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-clinical-teal/50 focus:border-clinical-teal transition-all"
-                  placeholder="doc@hospital.com"
+                  placeholder="doctor@phc.org"
                 />
               </div>
             </div>

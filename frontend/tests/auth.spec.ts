@@ -19,7 +19,7 @@ test('auth flow', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible();
 
     // Login as Admin
-    await page.getByPlaceholder('doc@hospital.com').fill('admin@hospital.org');
+    await page.getByPlaceholder('doctor@phc.org').fill('admin@hospital.org');
     await page.getByPlaceholder('Enter password').fill('password123');
     await page.getByRole('button', { name: 'Sign In' }).click();
 

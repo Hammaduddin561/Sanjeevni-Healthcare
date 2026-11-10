@@ -177,7 +177,7 @@ function App() {
                       prediction={predictionData}
                       patientInput={patientData!}
                       onReset={() => { setPredictionData(null); setPatientData(null); }}
-                      user={user || { name: 'Clinician', email: 'doc@hospital.com' }}
+                      user={user || { name: 'Clinician', email: 'doctor@phc.org' }}
                     />
                   ) : (
                     <div className="glass-panel min-h-[600px] h-full rounded-3xl p-0 flex flex-col items-center justify-center text-center relative overflow-hidden bg-gradient-to-br from-white/40 to-white/10 dark:from-slate-900/40 dark:to-slate-900/10">
