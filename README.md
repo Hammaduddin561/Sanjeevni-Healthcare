@@ -31,7 +31,7 @@ In rural and peri-urban India and similar resource-constrained regions, communit
 ## 🏗️ Architecture & Technical Stack
 
 - **Backend**: FastAPI (Python 3.11+), SQLite / SQLAlchemy, Pydantic V2 input validation with physiological clinical ranges.
-- **Machine Learning**: Calibrated XGBoost classifier trained on validated diabetes datasets (`data/diabetes_dataset.csv`).
+- **Machine Learning**: Calibrated XGBoost classifier trained on the public Kaggle diabetes benchmark dataset (`data/diabetes_dataset.csv`).
 - **Explainability**: SHAP TreeExplainer for sub-100ms explanations, plain-language English & Hindi risk driver translations, and actionable counterfactual recommendations (DiCE).
 - **Frontend**: React 19, TypeScript, Vite 8, Tailwind CSS, Framer Motion, PWA offline sync (IndexedDB).
 - **Interoperability**: HL7 FHIR R4 standard Bundles (Patient, Observation, RiskAssessment).

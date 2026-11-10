@@ -222,12 +222,13 @@ def get_model_card():
     return {
         "model_name": "Sanjeevni Calibrated XGBoost Risk Engine (v1.0)",
         "intended_use": "Rural community health worker screening and clinical decision support for 5-minute visits. Triages patients into Green, Yellow, and Red pathways.",
-        "data_source": "CDC/Kaggle Diabetes Screening Benchmark (100,000+ patient records) with clinical vitals and lab panels.",
+        "data_source": "Public Kaggle diabetes benchmark dataset (100,992 records) with demographics, BMI, hypertension, heart disease, smoking, glucose, and HbA1c.",
         "limitations": [
             "Research prototype for decision support only.",
             "Not an automated diagnostic tool or clinical device.",
             "Requires confirmatory venous blood testing and clinical evaluation by a licensed physician.",
-            "Synthetic and benchmark datasets may not reflect local micro-epidemiology in all rural sub-districts."
+            "Trained on the public Kaggle diabetes benchmark dataset; subgroup recall is lower for adults under 45 and false-positive rate is higher for adults 60+.",
+            fairness_data.get("age_audit", {}).get("limitation_note", "")
         ],
         "metrics": metrics_data,
         "fairness": fairness_data,

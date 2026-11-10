@@ -109,7 +109,34 @@ def run_fairness_audit():
     dp_diff_age = float(demographic_parity_difference(y_true, y_pred, sensitive_features=df_clean["age_group"]))
     eo_diff_age = float(equalized_odds_difference(y_true, y_pred, sensitive_features=df_clean["age_group"]))
 
+    # Dynamic summaries computed strictly from Fairlearn MetricFrame outputs
+    f_metrics = gender_by_group.get("Female", {})
+    m_metrics = gender_by_group.get("Male", {})
+    gender_summary = (
+        f"Across {len(df_clean):,} records from the public Kaggle diabetes benchmark dataset: "
+        f"Female recall is {f_metrics.get('recall_tpr', 0)*100:.1f}% (FPR {f_metrics.get('false_positive_rate', 0)*100:.1f}%, selection {f_metrics.get('selection_rate', 0)*100:.1f}%) and "
+        f"Male recall is {m_metrics.get('recall_tpr', 0)*100:.1f}% (FPR {m_metrics.get('false_positive_rate', 0)*100:.1f}%, selection {m_metrics.get('selection_rate', 0)*100:.1f}%). "
+        f"Demographic parity difference: {dp_diff_gender:.4f}; equalized odds difference: {eo_diff_gender:.4f}."
+    )
+
+    u30 = age_by_group.get("<30", {})
+    b30_44 = age_by_group.get("30-44", {})
+    b45_59 = age_by_group.get("45-59", {})
+    b60 = age_by_group.get("60+", {})
+    age_summary = (
+        f"Performance varies strongly by age band: recall is low for <30 ({u30.get('recall_tpr', 0)*100:.1f}%, FPR {u30.get('false_positive_rate', 0)*100:.1f}%) "
+        f"and moderate for 30-44 ({b30_44.get('recall_tpr', 0)*100:.1f}%, FPR {b30_44.get('false_positive_rate', 0)*100:.1f}%), "
+        f"rising to {b45_59.get('recall_tpr', 0)*100:.1f}% for 45-59 (FPR {b45_59.get('false_positive_rate', 0)*100:.1f}%) and "
+        f"{b60.get('recall_tpr', 0)*100:.1f}% for 60+ with a high false-positive rate of {b60.get('false_positive_rate', 0)*100:.1f}% (selection {b60.get('selection_rate', 0)*100:.1f}%). "
+        f"Age demographic parity difference is {dp_diff_age:.4f} and equalized odds difference is {eo_diff_age:.4f}."
+    )
+    age_limitation_note = (
+        f"Limitation: False-negative risk is higher in adults under 45 (<30 recall {u30.get('recall_tpr', 0)*100:.1f}%, 30-44 recall {b30_44.get('recall_tpr', 0)*100:.1f}%), "
+        f"while adults 60+ experience a high false-positive rate ({b60.get('false_positive_rate', 0)*100:.1f}%). Symptomatic younger adults must still receive confirmatory blood glucose testing."
+    )
+
     audit_results = {
+        "dataset_source": "public Kaggle diabetes benchmark dataset",
         "dataset_sample_size": int(len(df_clean)),
         "model_file": MODEL_PATH.name,
         "overall_metrics": {k: round(float(v), 4) for k, v in gender_overall.items()},
@@ -120,11 +147,7 @@ def run_fairness_audit():
             },
             "demographic_parity_difference": round(dp_diff_gender, 4),
             "equalized_odds_difference": round(eo_diff_gender, 4),
-            "summary": (
-                f"Demographic parity difference across gender is {dp_diff_gender:.3f}. "
-                f"Equalized odds difference is {eo_diff_gender:.3f}. "
-                "Both Male and Female cohorts maintain high recall (>90%) with minimal disparity."
-            )
+            "summary": gender_summary,
         },
         "age_audit": {
             "by_group": {
@@ -133,14 +156,12 @@ def run_fairness_audit():
             },
             "demographic_parity_difference": round(dp_diff_age, 4),
             "equalized_odds_difference": round(eo_diff_age, 4),
-            "summary": (
-                f"Older age bands (>45) demonstrate higher selection rates corresponding to clinical epidemiology of T2D. "
-                "Recall remains robust across all adult screening tiers."
-            )
+            "summary": age_summary,
+            "limitation_note": age_limitation_note,
         },
         "disclaimer": (
-            "Fairness metrics are computed on synthetic/benchmark screening populations and represent "
-            "baseline parity evaluations. Clinicians should interpret individual results within local population contexts."
+            "Fairness metrics are computed on the public Kaggle diabetes benchmark dataset and represent "
+            "baseline subgroup parity evaluations. Screening results must be confirmed clinically."
         )
     }
 

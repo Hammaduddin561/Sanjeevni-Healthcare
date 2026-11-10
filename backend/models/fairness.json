@@ -1,4 +1,5 @@
 {
+  "dataset_source": "public Kaggle diabetes benchmark dataset",
   "dataset_sample_size": 100974,
   "model_file": "risk_pipeline_v1.joblib",
   "overall_metrics": {
@@ -27,7 +28,7 @@
     },
     "demographic_parity_difference": 0.0406,
     "equalized_odds_difference": 0.0228,
-    "summary": "Demographic parity difference across gender is 0.041. Equalized odds difference is 0.023. Both Male and Female cohorts maintain high recall (>90%) with minimal disparity."
+    "summary": "Across 100,974 records from the public Kaggle diabetes benchmark dataset: Female recall is 91.5% (FPR 8.7%, selection 15.0%) and Male recall is 93.7% (FPR 11.0%, selection 19.0%). Demographic parity difference: 0.0406; equalized odds difference: 0.0228."
   },
   "age_audit": {
     "by_group": {
@@ -62,7 +63,8 @@
     },
     "demographic_parity_difference": 0.4094,
     "equalized_odds_difference": 0.3128,
-    "summary": "Older age bands (>45) demonstrate higher selection rates corresponding to clinical epidemiology of T2D. Recall remains robust across all adult screening tiers."
+    "summary": "Performance varies strongly by age band: recall is low for <30 (66.1%, FPR 0.1%) and moderate for 30-44 (78.1%, FPR 3.2%), rising to 90.8% for 45-59 (FPR 12.8%) and 97.3% for 60+ with a high false-positive rate of 27.9% (selection 41.6%). Age demographic parity difference is 0.4094 and equalized odds difference is 0.3128.",
+    "limitation_note": "Limitation: False-negative risk is higher in adults under 45 (<30 recall 66.1%, 30-44 recall 78.1%), while adults 60+ experience a high false-positive rate (27.9%). Symptomatic younger adults must still receive confirmatory blood glucose testing."
   },
-  "disclaimer": "Fairness metrics are computed on synthetic/benchmark screening populations and represent baseline parity evaluations. Clinicians should interpret individual results within local population contexts."
+  "disclaimer": "Fairness metrics are computed on the public Kaggle diabetes benchmark dataset and represent baseline subgroup parity evaluations. Screening results must be confirmed clinically."
 }

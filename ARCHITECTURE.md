@@ -76,7 +76,7 @@ flowchart TD
   - `AuditLog.tsx`: Admin-only view for system logs.
 
 ### 2.3 Data & Machine Learning Artifacts (`data/`, `ml-research/`)
-- **`data/diabetes_dataset.csv`**: Tabular dataset with 100,000 patient records (Gender, Age, Hypertension, Heart Disease, Smoking History, BMI, HbA1c, Blood Glucose, Diabetes).
+- **`data/diabetes_dataset.csv`**: Public Kaggle diabetes benchmark dataset with 100,992 records (Gender, Age, Hypertension, Heart Disease, Smoking History, BMI, HbA1c, Blood Glucose, Diabetes).
 - **`backend/models/risk_pipeline_v1.joblib`**: Serialized scikit-learn voting classifier pipeline. Needs retraining to ensure zero-warning binary compatibility with scikit-learn 1.9+ and ultra-fast TreeExplainer support.
 
 ---
