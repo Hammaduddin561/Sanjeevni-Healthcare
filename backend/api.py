@@ -23,7 +23,12 @@ from backend.schemas.patient import (
 )
 
 # Import Routes
-from backend.routes import auth, cohort, feedback, fhir, visit
+from backend.routes import auth, cohort, feedback, fhir, visit, audit
+from backend.auth import get_current_user
+from backend.models.user import User
+from backend.models.audit import record_audit_event
+from backend.database import get_db
+from sqlalchemy.orm import Session
 
 from fastapi.staticfiles import StaticFiles
 from backend.models.pdf_service import PDFService
@@ -79,6 +84,7 @@ app.include_router(cohort.router)
 app.include_router(feedback.router)
 app.include_router(fhir.router)
 app.include_router(visit.router)
+app.include_router(audit.router)
 
 def get_shared_risk_engine(request: Request) -> RiskEngine:
     engine = getattr(request.app.state, "risk_engine", None)
@@ -112,7 +118,12 @@ def root():
     }
 
 @app.post("/predict", response_model=RiskResponse)
-def predict_risk(patient: PatientRequest, engine: RiskEngine = Depends(get_shared_risk_engine)):
+def predict_risk(
+    patient: PatientRequest,
+    engine: RiskEngine = Depends(get_shared_risk_engine),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     try:
         data = patient.model_dump()
         # Remove metadata before passing to ML model
@@ -138,10 +149,9 @@ def predict_risk(patient: PatientRequest, engine: RiskEngine = Depends(get_share
         except Exception as hist_e:
             app_logger.warning(f"Failed to record patient history: {hist_e}")
 
-        # Structured audit log (zero patient identifiers)
-        audit_logger.info(
-            "Prediction generated",
-            extra={"audit_event": {"action": "PREDICT", "risk_level": level, "score": score}}
+        record_audit_event(
+            db, current_user.email, current_user.role, "PREDICT", "/predict", "success",
+            {"risk_level": level, "score": score}
         )
 
         return {"risk_score": score, "risk_level": level, "explanations": explanations}
@@ -150,11 +160,15 @@ def predict_risk(patient: PatientRequest, engine: RiskEngine = Depends(get_share
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/history", response_model=Dict[str, Any])
-def get_history(limit: int = 10):
+def get_history(limit: int = 10, current_user: User = Depends(get_current_user)):
     return HistoryService.get_history(limit)
 
 @app.post("/explain", response_model=ExplanationResponse)
-def explain_risk(patient: PatientRequest, engine: RiskEngine = Depends(get_shared_risk_engine)):
+def explain_risk(
+    patient: PatientRequest,
+    engine: RiskEngine = Depends(get_shared_risk_engine),
+    current_user: User = Depends(get_current_user)
+):
     try:
         data = patient.model_dump()
         data.pop('clinician_id', None)
@@ -177,7 +191,11 @@ def explain_risk(patient: PatientRequest, engine: RiskEngine = Depends(get_share
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/counterfactuals", response_model=CounterfactualResponse)
-def get_counterfactuals(patient: PatientRequest, engine: RiskEngine = Depends(get_shared_risk_engine)):
+def get_counterfactuals(
+    patient: PatientRequest,
+    engine: RiskEngine = Depends(get_shared_risk_engine),
+    current_user: User = Depends(get_current_user)
+):
     try:
         cf = Counterfactuals(engine)
         p_dict = patient.model_dump()
@@ -217,7 +235,11 @@ def get_model_card():
     }
 
 @app.post("/simulate", response_model=SimulationResponse)
-def simulate_risk(request: SimulationRequest, engine: RiskEngine = Depends(get_shared_risk_engine)):
+def simulate_risk(
+    request: SimulationRequest,
+    engine: RiskEngine = Depends(get_shared_risk_engine),
+    current_user: User = Depends(get_current_user)
+):
     try:
         cf = Counterfactuals(engine)
         p_dict = request.patient.model_dump()
@@ -237,7 +259,11 @@ def simulate_risk(request: SimulationRequest, engine: RiskEngine = Depends(get_s
 
 
 @app.post("/simulate/report", response_model=ReportResponse)
-def generate_simulation_report(request: SimulationRequest, engine: RiskEngine = Depends(get_shared_risk_engine)):
+def generate_simulation_report(
+    request: SimulationRequest,
+    engine: RiskEngine = Depends(get_shared_risk_engine),
+    current_user: User = Depends(get_current_user)
+):
     try:
         p_dict = request.patient.model_dump()
         original_risk = engine.predict_risk(p_dict)
@@ -259,7 +285,12 @@ def generate_simulation_report(request: SimulationRequest, engine: RiskEngine = 
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/report", response_model=ReportResponse)
-def generate_report(patient: PatientRequest, engine: RiskEngine = Depends(get_shared_risk_engine)):
+def generate_report(
+    patient: PatientRequest,
+    engine: RiskEngine = Depends(get_shared_risk_engine),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     try:
         data = patient.model_dump()
         data.pop('clinician_id', None)
@@ -303,6 +334,7 @@ def generate_report(patient: PatientRequest, engine: RiskEngine = Depends(get_sh
             except Exception as pdf_e:
                 app_logger.error(f"Error generating PDF: {pdf_e}")
 
+        record_audit_event(db, current_user.email, current_user.role, "REPORT", "/report", "success", {"risk_level": level})
         return {"report": report.strip(), "pdf_url": pdf_url}
     except Exception as e:
         app_logger.exception("Report generation failed")
@@ -320,29 +352,44 @@ def llm_health_check():
     }
 
 @app.post("/chat")
-def chat_endpoint(request: Dict[str, Any]):
+def chat_endpoint(
+    request: Dict[str, Any],
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     """Standard grounded chat endpoint."""
     msg = request.get("message", "")
     history = request.get("history", [])
+    record_audit_event(db, current_user.email, current_user.role, "CHAT", "/chat", "success")
     chunks = list(llm_engine.stream_chat(msg, history))
     return {"reply": "".join(chunks)}
 
 @app.post("/chat/stream")
-def chat_stream_endpoint(request: Dict[str, Any]):
+def chat_stream_endpoint(
+    request: Dict[str, Any],
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     """Server-Sent Events streaming chatbot endpoint."""
     msg = request.get("message", "")
     history = request.get("history", [])
+    record_audit_event(db, current_user.email, current_user.role, "CHAT", "/chat/stream", "success")
 
     def event_generator():
         for chunk in llm_engine.stream_chat(msg, history):
-            # Send SSE event format
-            yield f"data: {json.dumps({'chunk': chunk})}\n\n"
+            yield f"data: {json.dumps({'text': chunk, 'chunk': chunk})}\n\n"
         yield "data: [DONE]\n\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 @app.post("/report/stream")
-def generate_report_stream(patient: ReportGenerationRequest, engine: RiskEngine = Depends(get_shared_risk_engine)):
+def generate_report_stream(
+    patient: ReportGenerationRequest,
+    engine: RiskEngine = Depends(get_shared_risk_engine),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    record_audit_event(db, current_user.email, current_user.role, "REPORT", "/report/stream", "success")
     data = patient.model_dump()
     # Extract optional pre-calculated data
     pre_score = data.pop('risk_score', None)
@@ -424,7 +471,7 @@ class PHQ9Response(BaseModel):
     crisis_recommended: bool
 
 @app.post("/mental-health-screen", response_model=PHQ9Response)
-def mental_health_screen(request: PHQ9Request):
+def mental_health_screen(request: PHQ9Request, current_user: User = Depends(get_current_user)):
     """PHQ-9 Mental Health Screening — pure Python, no ML needed."""
     if len(request.scores) != 9:
         raise HTTPException(status_code=400, detail="Exactly 9 scores required (0-3 each)")

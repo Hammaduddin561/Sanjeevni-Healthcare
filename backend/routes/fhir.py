@@ -3,6 +3,11 @@ from fastapi import APIRouter, HTTPException, Depends, Request
 from backend.schemas.patient import PatientRequest
 from backend.utils.fhir_converter import FHIRConverter
 from backend.models.risk_engine import RiskEngine
+from backend.models.user import User
+from backend.models.audit import record_audit_event
+from backend.database import get_db
+from backend.auth import get_current_user
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger("sanjeevni.fhir")
 router = APIRouter(prefix="/fhir", tags=["FHIR Interoperability"])
@@ -16,7 +21,12 @@ def get_shared_risk_engine(request: Request) -> RiskEngine:
     return engine
 
 @router.post("/bundle")
-def convert_to_fhir(patient: PatientRequest, engine: RiskEngine = Depends(get_shared_risk_engine)):
+def convert_to_fhir(
+    patient: PatientRequest,
+    engine: RiskEngine = Depends(get_shared_risk_engine),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     try:
         data = patient.model_dump()
         score = engine.predict_risk(data)
@@ -31,6 +41,10 @@ def convert_to_fhir(patient: PatientRequest, engine: RiskEngine = Depends(get_sh
 
         # 3. Risk Assessment Resource
         fhir_assessment = FHIRConverter.to_risk_assessment(data, score, level, patient_ref=patient_id)
+
+        record_audit_event(
+            db, current_user.email, current_user.role, "FHIR_BUNDLE", "/fhir/bundle", "success", {"risk_level": level}
+        )
         
         entries = [{"resource": fhir_patient}]
         for obs in fhir_observations:

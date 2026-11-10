@@ -36,15 +36,30 @@ function App() {
 
   useEffect(() => {
     const storedUser = localStorage.getItem('sanjeevniUser');
-    if (storedUser) {
+    const token = localStorage.getItem('authToken');
+    if (storedUser && token) {
       try {
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
         setIsAuthenticated(true);
       } catch (e) {
         localStorage.removeItem('sanjeevniUser');
+        localStorage.removeItem('authToken');
       }
+    } else {
+      localStorage.removeItem('sanjeevniUser');
     }
+
+    const onUnauthorized = () => {
+      setUser(null);
+      setIsAuthenticated(false);
+      setPredictionData(null);
+      setPatientData(null);
+      localStorage.removeItem('sanjeevniUser');
+      localStorage.removeItem('authToken');
+    };
+    window.addEventListener('sanjeevni:unauthorized', onUnauthorized);
+    return () => window.removeEventListener('sanjeevni:unauthorized', onUnauthorized);
   }, []);
 
   const handleLoginSuccess = (userData: User) => {
@@ -67,6 +82,7 @@ function App() {
     setPredictionData(null);
     setPatientData(null);
     localStorage.removeItem('sanjeevniUser');
+    localStorage.removeItem('authToken');
   };
 
   const handlePredictionSuccess = (data: PredictionResponse, input: PredictionInput) => {

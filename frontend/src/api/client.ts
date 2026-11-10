@@ -1,6 +1,14 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+
+export const handleUnauthorized = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('sanjeevniUser');
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('sanjeevni:unauthorized'));
+    }
+};
 
 export const apiClient = axios.create({
     baseURL: API_BASE_URL,
@@ -9,7 +17,7 @@ export const apiClient = axios.create({
     },
 });
 
-// --- Auth Interceptor ---
+// --- Auth Interceptors ---
 apiClient.interceptors.request.use((config) => {
     const token = localStorage.getItem('authToken');
     if (token) {
@@ -19,6 +27,19 @@ apiClient.interceptors.request.use((config) => {
 }, (error) => {
     return Promise.reject(error);
 });
+
+apiClient.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error?.response?.status === 401) {
+            const reqUrl: string = error?.config?.url || '';
+            if (!reqUrl.includes('/auth/login') && !reqUrl.includes('/auth/register')) {
+                handleUnauthorized();
+            }
+        }
+        return Promise.reject(error);
+    }
+);
 
 // --- Auth Types & Functions ---
 
@@ -203,8 +224,12 @@ export const submitScreeningVisit = async (visit: ScreeningVisitInput): Promise<
     try {
         const res = await apiClient.post<ScreeningVisitResponse>('/visit', visit);
         return res.data;
-    } catch (err) {
-        console.warn("Backend unreachable; computing calibrated offline estimate and queuing to IndexedDB", err);
+    } catch (err: any) {
+        // Never treat HTTP auth/validation errors (401, 403, 422) as offline!
+        if (err?.response) {
+            throw err;
+        }
+        console.warn("Backend unreachable; computing offline estimate and queuing to IndexedDB", err);
         const offlineResult = calculateOfflineRisk(visit);
         await saveVisitToIndexedDB(visit, offlineResult);
         return offlineResult;
@@ -299,6 +324,10 @@ export const streamReport = async (
         body: JSON.stringify(patient),
     });
 
+    if (response.status === 401) {
+        handleUnauthorized();
+        return;
+    }
     if (!response.body) return;
 
     const reader = response.body.getReader();
@@ -428,5 +457,27 @@ export const submitFeedback = async (
 
 export const getFHIRBundle = async (patient: PredictionInput): Promise<any> => {
     const response = await apiClient.post('/fhir/bundle', patient);
+    return response.data;
+};
+
+export interface AuditEventRecord {
+    id: number;
+    timestamp: string;
+    actor_email: string;
+    actor_role: string;
+    action: string;
+    resource: string;
+    outcome: string;
+    details: Record<string, any>;
+}
+
+export interface AuditLogResponse {
+    events: AuditEventRecord[];
+    total: number;
+    requested_by: string;
+}
+
+export const getAuditLogs = async (limit: number = 100): Promise<AuditLogResponse> => {
+    const response = await apiClient.get<AuditLogResponse>('/audit', { params: { limit } });
     return response.data;
 };

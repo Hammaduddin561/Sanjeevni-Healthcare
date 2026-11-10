@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from backend.database import get_db
 from backend.models.user import User
+from backend.models.audit import record_audit_event
 from backend.auth import get_password_hash, verify_password, create_access_token, get_current_user
 from pydantic import BaseModel, EmailStr
 from typing import Optional
@@ -35,7 +36,8 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email already registered")
     
     role = user.role.lower() if user.role else "worker"
-    if role not in ["worker", "doctor", "admin"]:
+    # Self-registration is restricted to worker or doctor roles; admin must be seeded/promoted
+    if role not in ["worker", "doctor"]:
         role = "worker"
 
     hashed_password = get_password_hash(user.password)
@@ -50,7 +52,9 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    
+
+    record_audit_event(db, new_user.email, new_user.role, "REGISTER", "/auth/register", "success")
+
     access_token = create_access_token(data={"sub": new_user.email, "role": new_user.role})
     return {
         "access_token": access_token, 
@@ -66,12 +70,15 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
     clean_email = user.email.lower().strip()
     db_user = db.query(User).filter(User.email == clean_email).first()
     if not db_user or not verify_password(user.password, db_user.hashed_password):
+        record_audit_event(db, clean_email, "unknown", "LOGIN", "/auth/login", "failure")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
+    record_audit_event(db, db_user.email, db_user.role, "LOGIN", "/auth/login", "success")
+
     access_token = create_access_token(data={"sub": db_user.email, "role": db_user.role})
     return {
         "access_token": access_token, 

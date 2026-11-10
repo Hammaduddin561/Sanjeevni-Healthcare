@@ -1,4 +1,4 @@
-import type { ScreeningVisitInput, ScreeningVisitResponse } from '../api/client';
+import { API_BASE_URL, handleUnauthorized, type ScreeningVisitInput, type ScreeningVisitResponse } from '../api/client';
 
 const DB_NAME = 'sanjeevni_offline_db';
 const DB_VERSION = 1;
@@ -80,14 +80,22 @@ export const syncAllPendingVisits = async (): Promise<number> => {
   const pending = await getPendingVisitsFromDB();
   if (pending.length === 0) return 0;
 
+  const token = localStorage.getItem('authToken');
   let syncedCount = 0;
   for (const record of pending) {
     try {
-      const res = await fetch('/visit', {
+      const res = await fetch(`${API_BASE_URL}/visit`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
         body: JSON.stringify(record.payload)
       });
+      if (res.status === 401) {
+        handleUnauthorized();
+        break;
+      }
       if (res.ok) {
         await removePendingVisitFromDB(record.visit_id);
         syncedCount++;
