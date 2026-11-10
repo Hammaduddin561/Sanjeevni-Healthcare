@@ -38,7 +38,8 @@ export const GuidedVisitFlow: React.FC<GuidedVisitFlowProps> = ({
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [consentGiven, setConsentGiven] = useState(true);
 
-    // Step 1: Basic Vitals
+    // Step 1: Basic Vitals + No-Lab Mode Toggle
+    const [noLabMode, setNoLabMode] = useState<boolean>(false);
     const [patientName, setPatientName] = useState("");
     const [patientId, setPatientId] = useState("");
     const [village, setVillage] = useState("Rampur Sub-Centre");
@@ -161,8 +162,8 @@ export const GuidedVisitFlow: React.FC<GuidedVisitFlowProps> = ({
                 age: Number(age),
                 gender,
                 bmi: Number(bmi),
-                blood_glucose_level: Number(bloodGlucose),
-                HbA1c_level: Number(hba1c),
+                blood_glucose_level: noLabMode ? null : Number(bloodGlucose),
+                HbA1c_level: noLabMode ? null : Number(hba1c),
                 smoking_history: smoking,
                 hypertension: (systolicBp >= 140 || diastolicBp >= 90) ? 1 : 0,
                 heart_disease: heartDisease,
@@ -395,6 +396,25 @@ export const GuidedVisitFlow: React.FC<GuidedVisitFlowProps> = ({
                         </div>
                     </div>
 
+                    {/* No-Lab Visit Mode Toggle */}
+                    <div className="p-3.5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 flex items-center justify-between gap-3">
+                        <div>
+                            <span className="text-xs font-bold text-amber-900 dark:text-amber-200 block">
+                                Lab tests unavailable (No-Lab Screening Mode)
+                            </span>
+                            <span className="text-[11px] text-amber-800/80 dark:text-amber-300/80">
+                                Check this if glucometer / HbA1c lab readings are unavailable at the doorstep.
+                            </span>
+                        </div>
+                        <input
+                            type="checkbox"
+                            id="no-lab-toggle"
+                            checked={noLabMode}
+                            onChange={e => setNoLabMode(e.target.checked)}
+                            className="w-5 h-5 text-amber-600 rounded border-amber-300 focus:ring-amber-500 cursor-pointer shrink-0"
+                        />
+                    </div>
+
                     {/* Metabolic Readings: BMI, Glucose, HbA1c */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
                         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60">
@@ -421,7 +441,7 @@ export const GuidedVisitFlow: React.FC<GuidedVisitFlowProps> = ({
                             <p className="text-[11px] text-slate-400 mt-1">Normal: 18.5 - 24.9</p>
                         </div>
 
-                        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60">
+                        <div className={`p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60 transition-opacity ${noLabMode ? 'opacity-40 pointer-events-none' : ''}`}>
                             <div className="flex items-center justify-between mb-1">
                                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300">{t('visit.glucose')}</label>
                                 <button
@@ -437,14 +457,15 @@ export const GuidedVisitFlow: React.FC<GuidedVisitFlowProps> = ({
                                 type="number"
                                 min={40}
                                 max={600}
+                                disabled={noLabMode}
                                 value={bloodGlucose}
                                 onChange={e => setBloodGlucose(Number(e.target.value))}
                                 className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-lg font-bold outline-none"
                             />
-                            <p className="text-[11px] text-slate-400 mt-1">Normal: 70 - 100 mg/dL</p>
+                            <p className="text-[11px] text-slate-400 mt-1">{noLabMode ? 'Skipped in No-Lab mode' : 'Normal: 70 - 100 mg/dL'}</p>
                         </div>
 
-                        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60">
+                        <div className={`p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60 transition-opacity ${noLabMode ? 'opacity-40 pointer-events-none' : ''}`}>
                             <div className="flex items-center justify-between mb-1">
                                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300">{t('visit.hba1c')}</label>
                                 <button
@@ -461,11 +482,12 @@ export const GuidedVisitFlow: React.FC<GuidedVisitFlowProps> = ({
                                 step="0.1"
                                 min={3.5}
                                 max={18}
+                                disabled={noLabMode}
                                 value={hba1c}
                                 onChange={e => setHba1c(Number(e.target.value))}
                                 className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-lg font-bold outline-none"
                             />
-                            <p className="text-[11px] text-slate-400 mt-1">Normal: &lt; 5.7%</p>
+                            <p className="text-[11px] text-slate-400 mt-1">{noLabMode ? 'Skipped in No-Lab mode' : 'Normal: < 5.7%'}</p>
                         </div>
                     </div>
 
@@ -771,6 +793,11 @@ export const GuidedVisitFlow: React.FC<GuidedVisitFlowProps> = ({
                                 {result.visit_id.startsWith('offline_') && (
                                     <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-600 text-white flex items-center gap-1 shadow-sm">
                                         <WifiOff size={12} /> {t('triage.offline_badge')} (Queued for Sync)
+                                    </span>
+                                )}
+                                {result.lab_mode === 'no_lab' && (
+                                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-500 text-slate-950 flex items-center gap-1 shadow-sm">
+                                        Estimated without lab tests: confirm with a glucometer or lab test
                                     </span>
                                 )}
                                 <span className="text-xs text-slate-500">

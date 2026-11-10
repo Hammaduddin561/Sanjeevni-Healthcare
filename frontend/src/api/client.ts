@@ -97,8 +97,8 @@ export interface PredictionInput {
     heart_disease: number;
     smoking_history: string;
     bmi: number;
-    HbA1c_level: number;
-    blood_glucose_level: number;
+    HbA1c_level?: number | null;
+    blood_glucose_level?: number | null;
     clinician_id?: string;
     clinician_name?: string;
     patient_name?: string;
@@ -107,6 +107,9 @@ export interface PredictionInput {
 export interface PredictionResponse {
     risk_score: number;
     risk_level: string;
+    lab_mode?: 'full_lab' | 'no_lab';
+    model_mode_label?: string | null;
+    recommended_followup?: string | null;
     shap_values?: Record<string, number>;
     explanations?: Array<{
         feature: string;
@@ -177,8 +180,11 @@ export interface ScreeningVisitResponse {
     action_headline: string;
     action_details: string;
     bmi: number;
-    blood_glucose_level: number;
-    HbA1c_level: number;
+    blood_glucose_level?: number | null;
+    HbA1c_level?: number | null;
+    lab_mode?: 'full_lab' | 'no_lab';
+    model_mode_label?: string | null;
+    recommended_followup?: string | null;
     systolic_bp?: number;
     diastolic_bp?: number;
     hypertension_flag: number;

@@ -66,5 +66,72 @@
     "summary": "Performance varies strongly by age band: recall is low for <30 (66.1%, FPR 0.1%) and moderate for 30-44 (78.1%, FPR 3.2%), rising to 90.8% for 45-59 (FPR 12.8%) and 97.3% for 60+ with a high false-positive rate of 27.9% (selection 41.6%). Age demographic parity difference is 0.4094 and equalized odds difference is 0.3128.",
     "limitation_note": "Limitation: False-negative risk is higher in adults under 45 (<30 recall 66.1%, 30-44 recall 78.1%), while adults 60+ experience a high false-positive rate (27.9%). Symptomatic younger adults must still receive confirmatory blood glucose testing."
   },
-  "disclaimer": "Fairness metrics are computed on the public Kaggle diabetes benchmark dataset and represent baseline subgroup parity evaluations. Screening results must be confirmed clinically."
+  "disclaimer": "Fairness metrics are computed on the public Kaggle diabetes benchmark dataset and represent baseline subgroup parity evaluations. Screening results must be confirmed clinically.",
+  "no_lab_fairness": {
+    "model_file": "risk_pipeline_nolab_v1.joblib",
+    "overall_metrics": {
+      "accuracy": 0.7349,
+      "precision": 0.2155,
+      "recall_tpr": 0.8022,
+      "false_positive_rate": 0.2714,
+      "selection_rate": 0.3165
+    },
+    "gender_audit": {
+      "by_group": {
+        "Female": {
+          "accuracy": 0.7638,
+          "precision": 0.2107,
+          "recall_tpr": 0.7657,
+          "false_positive_rate": 0.2363,
+          "selection_rate": 0.2766
+        },
+        "Male": {
+          "accuracy": 0.694,
+          "precision": 0.2206,
+          "recall_tpr": 0.8424,
+          "false_positive_rate": 0.3221,
+          "selection_rate": 0.3729
+        }
+      },
+      "demographic_parity_difference": 0.0962,
+      "equalized_odds_difference": 0.0857,
+      "summary": "Across 100,974 records from the public Kaggle diabetes benchmark dataset: Female recall is 76.6% (FPR 23.6%, selection 27.7%) and Male recall is 84.2% (FPR 32.2%, selection 37.3%). Demographic parity difference: 0.0962; equalized odds difference: 0.0857."
+    },
+    "age_audit": {
+      "by_group": {
+        "30-44": {
+          "accuracy": 0.8793,
+          "precision": 0.1502,
+          "recall_tpr": 0.411,
+          "false_positive_rate": 0.1005,
+          "selection_rate": 0.1133
+        },
+        "45-59": {
+          "accuracy": 0.6351,
+          "precision": 0.1941,
+          "recall_tpr": 0.7388,
+          "false_positive_rate": 0.3777,
+          "selection_rate": 0.4173
+        },
+        "60+": {
+          "accuracy": 0.3777,
+          "precision": 0.2331,
+          "recall_tpr": 0.9427,
+          "false_positive_rate": 0.7608,
+          "selection_rate": 0.7966
+        },
+        "<30": {
+          "accuracy": 0.9907,
+          "precision": 0.2083,
+          "recall_tpr": 0.0361,
+          "false_positive_rate": 0.0012,
+          "selection_rate": 0.0015
+        }
+      },
+      "demographic_parity_difference": 0.7952,
+      "equalized_odds_difference": 0.9066,
+      "summary": "Performance varies strongly by age band: recall is low for <30 (3.6%, FPR 0.1%) and low for 30-44 (41.1%, FPR 10.0%), rising to 73.9% for 45-59 (FPR 37.8%) and 94.3% for 60+ with a high false-positive rate of 76.1% (selection 79.7%). Age demographic parity difference is 0.7952 and equalized odds difference is 0.9066.",
+      "limitation_note": "Limitation: False-negative risk is higher in adults under 45 (<30 recall 3.6%, 30-44 recall 41.1%), while adults 60+ experience a high false-positive rate (76.1%). Symptomatic younger adults must still receive confirmatory blood glucose testing."
+    }
+  }
 }

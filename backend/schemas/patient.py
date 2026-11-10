@@ -8,8 +8,8 @@ class PatientRequest(BaseModel):
     heart_disease: int = Field(..., description="History of heart disease (0 or 1)")
     smoking_history: str = Field(..., description="Smoking status (never, current, former, ever, not current, No Info)")
     bmi: float = Field(..., description="Body Mass Index in kg/m² (10.0 - 70.0)")
-    HbA1c_level: float = Field(..., description="Glycated hemoglobin percentage (3.5 - 18.0)")
-    blood_glucose_level: float = Field(..., description="Blood glucose level in mg/dL (40.0 - 600.0)")
+    HbA1c_level: Optional[float] = Field(None, description="Glycated hemoglobin percentage (3.5 - 18.0), optional in No-Lab mode")
+    blood_glucose_level: Optional[float] = Field(None, description="Blood glucose level in mg/dL (40.0 - 600.0), optional in No-Lab mode")
     systolic_bp: Optional[float] = Field(None, description="Systolic Blood Pressure in mmHg (60 - 260)")
     diastolic_bp: Optional[float] = Field(None, description="Diastolic Blood Pressure in mmHg (40 - 160)")
     phq9_scores: Optional[List[int]] = Field(None, description="PHQ-9 screening scores (9 items, 0-3 each)")
@@ -65,14 +65,18 @@ class PatientRequest(BaseModel):
 
     @field_validator("HbA1c_level")
     @classmethod
-    def validate_hba1c(cls, v: float) -> float:
+    def validate_hba1c(cls, v: Optional[float]) -> Optional[float]:
+        if v is None:
+            return None
         if v < 3.5 or v > 18.0:
             raise ValueError(f"HbA1c level must be between 3.5% and 18.0%. Received: {v}")
         return round(float(v), 2)
 
     @field_validator("blood_glucose_level")
     @classmethod
-    def validate_glucose(cls, v: float) -> float:
+    def validate_glucose(cls, v: Optional[float]) -> Optional[float]:
+        if v is None:
+            return None
         if v < 40.0 or v > 600.0:
             raise ValueError(f"Blood glucose level must be between 40.0 and 600.0 mg/dL. Received: {v}")
         return round(float(v), 1)
@@ -111,6 +115,9 @@ class ReportGenerationRequest(PatientRequest):
 class RiskResponse(BaseModel):
     risk_score: float
     risk_level: str
+    lab_mode: str = "full_lab"
+    model_mode_label: Optional[str] = None
+    recommended_followup: Optional[str] = None
 
 class ExplanationResponse(BaseModel):
     explanations: List[Dict[str, Any]]
@@ -186,8 +193,11 @@ class VisitResponse(BaseModel):
 
     # Vitals & Screeners summary
     bmi: float
-    blood_glucose_level: float
-    HbA1c_level: float
+    blood_glucose_level: Optional[float] = None
+    HbA1c_level: Optional[float] = None
+    lab_mode: str = "full_lab"
+    model_mode_label: Optional[str] = None
+    recommended_followup: Optional[str] = None
     systolic_bp: Optional[float] = None
     diastolic_bp: Optional[float] = None
     hypertension_flag: int = 0

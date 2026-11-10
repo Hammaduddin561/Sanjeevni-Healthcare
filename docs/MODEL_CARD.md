@@ -12,7 +12,7 @@ Sanjeevni Healthcarer is a research prototype for clinical screening support. It
 - **Random Seed**: 42
 
 ## Performance Metrics (Full-Lab Model)
-- **ROC-AUC**: 0.9778
+- **ROC-AUC**: 0.9773
 - **Sensitivity (Recall)**: 91.61%
 - **Specificity**: 90.02%
 - **Precision**: 46.02%
@@ -20,6 +20,16 @@ Sanjeevni Healthcarer is a research prototype for clinical screening support. It
 - **Brier Score (Calibrated / Uncalibrated)**: 0.0258 / 0.0598
 - **Expected Calibration Error (Calibrated / Uncalibrated)**: 0.0232 / 0.0961
 - **Confusion Matrix (Test Set)**: TP=1573, FP=1845, TN=16637, FN=144
+
+## Performance Metrics (No-Lab Screening Model — Without Glucose or HbA1c)
+- **Features Used**: age, bmi, hypertension, heart_disease, smoking_history, gender
+- **ROC-AUC**: 0.8324
+- **Sensitivity (Recall)**: 78.45%
+- **Specificity**: 72.69%
+- **Precision**: 21.06%
+- **Brier Score (Calibrated / Uncalibrated)**: 0.0667 / 0.1697
+- **Expected Calibration Error (Calibrated / Uncalibrated)**: 0.0076 / 0.2612
+- **Confusion Matrix (Test Set)**: TP=1347, FP=5048, TN=13434, FN=370
 
 ## Fairness Audit (Fairlearn)
 
@@ -45,3 +55,7 @@ Sanjeevni Healthcarer is a research prototype for clinical screening support. It
 | 45-59 | 90.8% | 12.8% | 21.4% | 87.6% |
 | 60+ | 97.3% | 27.9% | 41.5% | 77.1% |
 | <30 | 66.1% | 0.1% | 0.6% | 99.7% |
+
+### No-Lab Model Fairness Summary
+- **Gender**: Across 100,974 records from the public Kaggle diabetes benchmark dataset: Female recall is 76.6% (FPR 23.6%, selection 27.7%) and Male recall is 84.2% (FPR 32.2%, selection 37.3%). Demographic parity difference: 0.0962; equalized odds difference: 0.0857.
+- **Age Bands**: Performance varies strongly by age band: recall is low for <30 (3.6%, FPR 0.1%) and low for 30-44 (41.1%, FPR 10.0%), rising to 73.9% for 45-59 (FPR 37.8%) and 94.3% for 60+ with a high false-positive rate of 76.1% (selection 79.7%). Age demographic parity difference is 0.7952 and equalized odds difference is 0.9066.

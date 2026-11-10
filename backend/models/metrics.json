@@ -1,5 +1,6 @@
 {
   "model_name": "Sanjeevni Tabular XGBoost Ensemble",
+  "data_source": "public Kaggle diabetes benchmark dataset",
   "random_seed": 42,
   "dataset": {
     "total_records": 100992,
@@ -8,7 +9,7 @@
     "positive_prevalence_pct": 8.5
   },
   "performance": {
-    "roc_auc": 0.9778,
+    "roc_auc": 0.9773,
     "accuracy": 0.9015,
     "precision": 0.4602,
     "recall_sensitivity": 0.9161,
@@ -27,44 +28,40 @@
   },
   "calibration_curve": [
     {
-      "mean_predicted_value": 0.009339030223535372,
-      "fraction_of_positives": 0.0008764882039295887
+      "mean_predicted_value": 0.005092993008044335,
+      "fraction_of_positives": 0.009864364981504316
     },
     {
-      "mean_predicted_value": 0.14279481392094795,
-      "fraction_of_positives": 0.015151515151515152
+      "mean_predicted_value": 0.14860943955024936,
+      "fraction_of_positives": 0.13595166163141995
     },
     {
-      "mean_predicted_value": 0.2462433451362203,
-      "fraction_of_positives": 0.04354136429608128
+      "mean_predicted_value": 0.24527469765348348,
+      "fraction_of_positives": 0.13078470824949698
     },
     {
-      "mean_predicted_value": 0.35140569838066826,
-      "fraction_of_positives": 0.06401384083044982
+      "mean_predicted_value": 0.3487509303924273,
+      "fraction_of_positives": 0.20503597122302158
     },
     {
-      "mean_predicted_value": 0.45101954270361494,
-      "fraction_of_positives": 0.06847360912981455
+      "mean_predicted_value": 0.4488730482100504,
+      "fraction_of_positives": 0.2644230769230769
     },
     {
-      "mean_predicted_value": 0.5512040925060847,
-      "fraction_of_positives": 0.10688140556368961
+      "mean_predicted_value": 0.5477955123095487,
+      "fraction_of_positives": 0.2651162790697674
     },
     {
-      "mean_predicted_value": 0.6495020851175836,
-      "fraction_of_positives": 0.13617021276595745
+      "mean_predicted_value": 0.6489004818005017,
+      "fraction_of_positives": 0.41228070175438597
     },
     {
-      "mean_predicted_value": 0.7469799279702777,
-      "fraction_of_positives": 0.23151750972762647
+      "mean_predicted_value": 0.7248085302285465,
+      "fraction_of_positives": 0.4666666666666667
     },
     {
-      "mean_predicted_value": 0.843980934173783,
-      "fraction_of_positives": 0.3312883435582822
-    },
-    {
-      "mean_predicted_value": 0.9974537170734726,
-      "fraction_of_positives": 0.9890756302521009
+      "mean_predicted_value": 0.8717717207274053,
+      "fraction_of_positives": 1.0
     }
   ],
   "features": {
@@ -101,6 +98,83 @@
       "BMI_Category_Obese",
       "BMI_Category_Overweight",
       "BMI_Category_Underweight"
+    ]
+  },
+  "no_lab": {
+    "model_name": "Sanjeevni No-Lab Screening XGBoost (Platt-Calibrated)",
+    "description": "Fallback screening model operating without HbA1c or Blood Glucose.",
+    "features": [
+      "age",
+      "bmi",
+      "hypertension",
+      "heart_disease",
+      "smoking_history",
+      "gender"
+    ],
+    "all_transformed_features": [
+      "age",
+      "hypertension",
+      "heart_disease",
+      "bmi",
+      "BMI_Age_Interaction",
+      "gender_Female",
+      "gender_Male",
+      "gender_Other",
+      "smoking_history_No Info",
+      "smoking_history_current",
+      "smoking_history_ever",
+      "smoking_history_former",
+      "smoking_history_never",
+      "smoking_history_not current",
+      "Age_Category_Elderly",
+      "Age_Category_Middle",
+      "Age_Category_Senior",
+      "Age_Category_Young",
+      "Age_Category_missing",
+      "BMI_Category_Normal",
+      "BMI_Category_Obese",
+      "BMI_Category_Overweight",
+      "BMI_Category_Underweight"
+    ],
+    "performance": {
+      "roc_auc": 0.8324,
+      "accuracy": 0.7318,
+      "precision": 0.2106,
+      "recall_sensitivity": 0.7845,
+      "specificity": 0.7269,
+      "f1_score": 0.3321,
+      "brier_score_uncalibrated": 0.1697,
+      "brier_score_calibrated": 0.0667,
+      "expected_calibration_error_uncalibrated": 0.2612,
+      "expected_calibration_error_calibrated": 0.0076
+    },
+    "confusion_matrix": {
+      "true_negatives": 13434,
+      "false_positives": 5048,
+      "false_negatives": 370,
+      "true_positives": 1347
+    },
+    "calibration_curve": [
+      {
+        "mean_predicted_value": 0.027370409780566565,
+        "fraction_of_positives": 0.030956783781932746
+      },
+      {
+        "mean_predicted_value": 0.146108154004464,
+        "fraction_of_positives": 0.13771186440677965
+      },
+      {
+        "mean_predicted_value": 0.24615062327548237,
+        "fraction_of_positives": 0.22240172320947765
+      },
+      {
+        "mean_predicted_value": 0.34218876763364237,
+        "fraction_of_positives": 0.35598980458793544
+      },
+      {
+        "mean_predicted_value": 0.425828395380184,
+        "fraction_of_positives": 0.5294117647058824
+      }
     ]
   }
 }

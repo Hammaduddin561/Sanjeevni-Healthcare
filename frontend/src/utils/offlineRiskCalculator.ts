@@ -1,11 +1,11 @@
 import type { ScreeningVisitInput, ScreeningVisitResponse } from '../api/client';
 
 export const calculateOfflineRisk = (input: ScreeningVisitInput): ScreeningVisitResponse => {
-  // Logistic approximation calibrated to our XGBoost model (ROC-AUC ~0.97)
+  const isNoLab = input.blood_glucose_level == null || input.HbA1c_level == null;
   const age = input.age || 40;
   const bmi = input.bmi || 24;
-  const glucose = input.blood_glucose_level || 100;
-  const hba1c = input.HbA1c_level || 5.5;
+  const glucose = input.blood_glucose_level ?? 0;
+  const hba1c = input.HbA1c_level ?? 0;
   const systolic = input.systolic_bp || 120;
   const diastolic = input.diastolic_bp || 80;
   const heartDisease = input.heart_disease || 0;
@@ -103,8 +103,11 @@ export const calculateOfflineRisk = (input: ScreeningVisitInput): ScreeningVisit
     action_headline: actionHeadline,
     action_details: actionDetails,
     bmi,
-    blood_glucose_level: glucose,
-    HbA1c_level: hba1c,
+    blood_glucose_level: input.blood_glucose_level ?? null,
+    HbA1c_level: input.HbA1c_level ?? null,
+    lab_mode: isNoLab ? 'no_lab' : 'full_lab',
+    model_mode_label: isNoLab ? 'Estimated without lab tests: confirm with a glucometer or lab test' : null,
+    recommended_followup: isNoLab ? 'Recommended: Confirm with a blood glucose (glucometer/fasting) or HbA1c lab check.' : null,
     systolic_bp: systolic,
     diastolic_bp: diastolic,
     hypertension_flag: (systolic >= 140 || diastolic >= 90) ? 1 : 0,

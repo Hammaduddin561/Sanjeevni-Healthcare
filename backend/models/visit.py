@@ -22,8 +22,9 @@ class Visit(Base):
     systolic_bp = Column(Float, nullable=True)
     diastolic_bp = Column(Float, nullable=True)
     hypertension_flag = Column(Integer, default=0)
-    blood_glucose_level = Column(Float, nullable=False)
-    HbA1c_level = Column(Float, nullable=False)
+    blood_glucose_level = Column(Float, nullable=True)
+    HbA1c_level = Column(Float, nullable=True)
+    lab_mode = Column(String, default="full_lab")
     smoking_history = Column(String, default="never")
     heart_disease = Column(Integer, default=0)
 
